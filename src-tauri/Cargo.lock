@@ -59,9 +59,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dotenv",
+ "once_cell",
  "reqwest",
  "serde",
  "serde_json",
+ "serde_repr",
  "tauri",
  "tauri-build",
 ]

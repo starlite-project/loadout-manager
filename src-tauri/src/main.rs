@@ -8,6 +8,8 @@ use dotenv::dotenv;
 
 fn main() -> Result<()> {
 	dotenv()?;
-	tauri::Builder::default().run(tauri::generate_context!())?;
+	tauri::Builder::default()
+		.invoke_handler(tauri::generate_handler![app::fetch::get_bungie_applications])
+		.run(tauri::generate_context!()).expect("uh oh");
 	Ok(())
 }
