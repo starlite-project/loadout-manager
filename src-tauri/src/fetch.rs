@@ -11,6 +11,8 @@ static CLIENT: OnceCell<Client> = OnceCell::new();
 
 const API_BASE: &str = "https://bungie.net/Platform";
 
+const API_KEY: Option<&str> = option_env!("API_KEY");
+
 #[tauri::command]
 pub async fn get_bungie_applications() -> Result<BungieResponse<Vec<Application>>, String> {
 	fetch("/App/FirstParty", Method::GET)
@@ -29,7 +31,7 @@ async fn fetch<T: Serialize + DeserializeOwned>(
 	let request_builder = client.request(method, route);
 
 	let res = request_builder
-		.header("X-API-Key", env::var("API_KEY")?)
+		.header("X-API-Key", API_KEY.unwrap_or_default())
 		.send()
 		.await?
 		.json()
