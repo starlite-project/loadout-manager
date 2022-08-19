@@ -1,5 +1,3 @@
-use std::env;
-
 use anyhow::Result;
 use once_cell::sync::OnceCell;
 use reqwest::{Client, Method};
@@ -11,7 +9,7 @@ static CLIENT: OnceCell<Client> = OnceCell::new();
 
 const API_BASE: &str = "https://bungie.net/Platform";
 
-const API_KEY: Option<&str> = option_env!("API_KEY");
+const API_KEY: &str = env!("API_KEY");
 
 #[tauri::command]
 pub async fn get_bungie_applications() -> Result<BungieResponse<Vec<Application>>, String> {
@@ -31,7 +29,7 @@ async fn fetch<T: Serialize + DeserializeOwned>(
 	let request_builder = client.request(method, route);
 
 	let res = request_builder
-		.header("X-API-Key", API_KEY.unwrap_or_default())
+		.header("X-API-Key", API_KEY)
 		.send()
 		.await?
 		.json()
