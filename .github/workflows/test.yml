@@ -23,6 +23,19 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: node_modules
+        with:
+          path: node_modules
+          key: ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+            ${{ matrix.platform }}-stable-${{ env.cache-name }}-
+            ${{ matrix.platform }}-stable-
+            ${{ matrix.platform }}-
+
       - name: Cache cargo state
         uses: actions/cache@v2
         env:
@@ -39,7 +52,7 @@ jobs:
             ${{ matrix.platform }}-stable-
             ${{ matrix.platform }}-
 
-      - name: Cache bundler cargo target
+      - name: Cache cargo artifacts
         uses: actions/cache@v2
         env:
           cache-name: cargo_bundler
