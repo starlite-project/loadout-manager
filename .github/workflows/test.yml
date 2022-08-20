@@ -23,15 +23,23 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Get current date
+        if: matrix.platform == 'macos-latest' || matrix.platform == 'ubuntu-latest'
+        run: echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: Get current date
+        if: matrix.platform == 'windows-latest'
+        run: echo "CURRENT_DATE=$(Get-Date -Format "yyyy-MM-dd")" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Cache node modules
         uses: actions/cache@v2
         env:
           cache-name: node_modules
         with:
           path: node_modules
-          key: ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}-${{ env.CURRENT_DATE }}
           restore-keys: |
-            ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+            ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}-${{ env.CURRENT_DATE }}
             ${{ matrix.platform }}-stable-${{ env.cache-name }}-
             ${{ matrix.platform }}-stable-
             ${{ matrix.platform }}-
@@ -45,9 +53,9 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cargo/bin
-          key: ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}-${{ env.CURRENT_DATE }}
           restore-keys: |
-            ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}-
+            ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}-${{ env.CURRENT_DATE }}
             ${{ matrix.platform }}-stable-${{ env.cache-name }}-
             ${{ matrix.platform }}-stable-
             ${{ matrix.platform }}-
@@ -58,9 +66,9 @@ jobs:
           cache-name: cargo_bundler
         with:
           path: src-tauri/target
-          key: ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('tooling/bundler/Cargo.lock') }}
+          key: ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('tooling/bundler/Cargo.lock') }}-${{ env.CURRENT_DATE }}
           restore-keys: |
-            ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('tooling/bundler/Cargo.lock') }}
+            ${{ matrix.platform }}-stable-${{ env.cache-name }}-${{ hashFiles('tooling/bundler/Cargo.lock') }}-${{ env.CURRENT_DATE }}
             ${{ matrix.platform }}-stable-${{ env.cache-name }}-
             ${{ matrix.platform }}-stable-
             ${{ matrix.platform }}-

@@ -12,6 +12,7 @@ jobs:
       matrix:
         runs-on: [macos-latest, ubuntu-latest, windows-latest]
 
+    # Don't cache stuff as we want fresh dependencies for release builds
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
