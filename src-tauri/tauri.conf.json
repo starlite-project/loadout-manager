@@ -12,13 +12,17 @@
 	},
 	"tauri": {
 		"allowlist": {
-			"all": true,
 			"http": {
-				"all": true,
 				"request": true,
 				"scope": [
 					"https://bungie.net/"
 				]
+			},
+			"dialog": {
+				"message": true
+			},
+			"shell": {
+				"open": true
 			}
 		},
 		"bundle": {

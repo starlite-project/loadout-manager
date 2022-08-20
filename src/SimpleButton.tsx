@@ -23,7 +23,7 @@ export class SimpleButton extends React.Component<{}, { data: string, fetched: b
         const data = await invoke('get_bungie_applications')
 
         this.setState((state) => ({
-            data: JSON.stringify(data as any),
+            data: JSON.stringify(data as any, null, 4),
             fetched: true,
         }));
     }
