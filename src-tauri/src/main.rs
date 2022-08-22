@@ -7,8 +7,8 @@ use std::collections::HashMap;
 
 use app::{LoadoutState, Result};
 use serde_json::{Number as JsonNumber, Value as JsonValue};
+use storage::{PluginBuilder, StoreBuilder};
 use tauri::api::dialog;
-use tauri_plugin_store::{PluginBuilder, StoreBuilder};
 
 fn main() -> Result<()> {
 	let mut defaults = HashMap::new();

@@ -8,7 +8,7 @@
 	},
 	"package": {
 		"productName": "loadout-manager",
-		"version": "../package.json"
+		"version": "0.0.1"
 	},
 	"tauri": {
 		"allowlist": {
@@ -40,7 +40,7 @@
 				"icons/icon.icns",
 				"icons/icon.ico"
 			],
-			"identifier": "com.loadout-manager.starlight",
+			"identifier": "com.starlight.loadout-manager",
 			"longDescription": "",
 			"macOS": {
 				"entitlements": null,

@@ -1,0 +1,2 @@
+[workspace]
+members = ["./storage", "./src-tauri"]
