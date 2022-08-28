@@ -5,7 +5,8 @@
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use app::{LoadoutState, Result};
+use app::Result;
+use tauri::api::http::ClientBuilder;
 use tokio::runtime::Builder as RtBuilder;
 
 static THREAD_ID: AtomicUsize = AtomicUsize::new(1);
@@ -23,10 +24,12 @@ fn main() -> Result<()> {
 		})
 		.build()?;
 
-		tauri::async_runtime::set(runtime.handle().clone());
+	tauri::async_runtime::set(runtime.handle().clone());
+
+	let client = ClientBuilder::new().build()?;
 
 	tauri::Builder::default()
-		.manage(LoadoutState::new()?)
+		.manage(client)
 		.invoke_handler(tauri::generate_handler![
 			app::fetch::get_bungie_applications,
 			app::oauth::begin_oauth,

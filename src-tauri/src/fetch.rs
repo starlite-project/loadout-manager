@@ -5,7 +5,7 @@ use tauri::api::http::{Client, HttpRequestBuilder, ResponseType};
 
 use crate::{
 	model::{Application, BungieResponse},
-	LoadoutState, Result,
+	Result,
 };
 
 const API_BASE: &str = "https://bungie.net/Platform";
@@ -16,9 +16,9 @@ pub const CLIENT_ID: &str = env!("CLIENT_ID");
 
 #[tauri::command]
 pub async fn get_bungie_applications(
-	state: tauri::State<'_, LoadoutState>,
+	state: tauri::State<'_, Client>,
 ) -> Result<BungieResponse<Vec<Application>>> {
-	fetch(state.http(), "/App/FirstParty", Method::Get).await
+	fetch(&*state, "/App/FirstParty", Method::Get).await
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

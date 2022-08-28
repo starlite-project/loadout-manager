@@ -5,14 +5,13 @@ use oauth2::{
 	PkceCodeChallenge, TokenResponse, TokenUrl,
 };
 use tauri::{
-	api::http::{Body, HttpRequestBuilder, ResponseType},
+	api::http::{Body, Client, HttpRequestBuilder, ResponseType},
 	Manager,
 };
 use tiny_http::{Response, Server};
 use url::Url;
 
-use super::fetch::CLIENT_ID;
-use crate::{LoadoutState, Result};
+use super::{fetch::CLIENT_ID, Result};
 
 #[cfg(windows)]
 const PRIVATE_HTTPS_KEY: &[u8] = include_bytes!("..\\localhost-key.pem");
@@ -28,7 +27,7 @@ const CLIENT_SECRET: &str = env!("CLIENT_SECRET");
 #[tauri::command]
 pub async fn begin_oauth(
 	app_handle: tauri::AppHandle,
-	state: tauri::State<'_, LoadoutState>,
+	state: tauri::State<'_, Client>,
 ) -> Result<()> {
 	let client = BasicClient::new(
 		ClientId::new(CLIENT_ID.to_owned()),
@@ -82,7 +81,7 @@ pub async fn begin_oauth(
 
 	request.respond(response)?;
 
-	let http = state.http();
+	let http = &*state;
 
 	let token_result = client
 		.exchange_code(AuthorizationCode::new(auth_code.clone()))

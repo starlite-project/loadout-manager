@@ -18,9 +18,6 @@
 					"https://bungie.net/"
 				]
 			},
-			"dialog": {
-				"message": true
-			},
 			"shell": {
 				"open": true
 			}
