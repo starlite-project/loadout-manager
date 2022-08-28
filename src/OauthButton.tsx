@@ -26,18 +26,21 @@ export class OauthButton extends React.Component<{ alreadyLoggedIn?: boolean }, 
     }
 
     public render(): React.ReactNode {
-        const isLoggedIn = this.state.isLoggedIn;
+        // const isLoggedIn = this.state.isLoggedIn;
 
-        let button = null;
-        if (isLoggedIn) {
-            button = <LogoutButton onClick={() => this.handleLogoutClick()} />;
-        } else {
-            button = <LoginButton onClick={async () => await this.handleLoginClick()} />;
-        }
+        // let button = null;
+        // if (isLoggedIn) {
+        //     button = <LogoutButton onClick={() => this.handleLogoutClick()} />;
+        // } else {
+        //     button = <LoginButton onClick={async () => await this.handleLoginClick()} />;
+        // }
 
+        // return (
+        //     <div>{button}</div>
+        // )
         return (
-            <div>{button}</div>
-        )
+            <LoginButton onClick={async () => await this.handleLoginClick()} />
+        );
     }
 }
 

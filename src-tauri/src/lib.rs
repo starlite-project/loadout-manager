@@ -5,12 +5,15 @@ use std::{
 
 pub mod fetch;
 mod model;
+pub mod oauth;
 mod state;
 pub mod util;
 
 use serde::{Serialize, Serializer};
 
-pub use self::state::LoadoutState;
+pub use self::{
+	state::LoadoutState,
+};
 
 #[derive(Debug)]
 #[repr(transparent)]

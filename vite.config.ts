@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
 	clearScreen: false,
 	server: {
-		strictPort: true
+		strictPort: true,
 	},
 	envPrefix: ['VITE_', 'TAURI_'],
 	build: {

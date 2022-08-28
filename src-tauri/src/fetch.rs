@@ -1,11 +1,7 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde::{de::DeserializeOwned, Serialize};
-use tauri::{
-	api::http::{Client, HttpRequestBuilder, ResponseType},
-	Manager,
-};
-use url::Url;
+use tauri::api::http::{Client, HttpRequestBuilder, ResponseType};
 
 use crate::{
 	model::{Application, BungieResponse},
@@ -16,26 +12,13 @@ const API_BASE: &str = "https://bungie.net/Platform";
 
 const API_KEY: &str = env!("API_KEY");
 
-const CLIENT_ID: &str = env!("CLIENT_ID");
-
-#[tauri::command]
-pub async fn begin_oauth(app_handle: tauri::AppHandle) -> Result<()> {
-	let scope = app_handle.shell_scope();
-	let bungie_oauth_url = Url::parse_with_params(
-		"https://bungie.net/en/oauth/authorize",
-		[("client_id", CLIENT_ID), ("response_type", "code")],
-	)?;
-
-	scope.open(bungie_oauth_url.as_str(), None)?;
-
-	Ok(())
-}
+pub const CLIENT_ID: &str = env!("CLIENT_ID");
 
 #[tauri::command]
 pub async fn get_bungie_applications(
 	state: tauri::State<'_, LoadoutState>,
 ) -> Result<BungieResponse<Vec<Application>>> {
-	fetch(&state.http(), "/App/FirstParty", Method::Get).await
+	fetch(state.http(), "/App/FirstParty", Method::Get).await
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
