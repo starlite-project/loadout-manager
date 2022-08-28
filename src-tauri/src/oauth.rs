@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use oauth2::{
-	basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken,
-	PkceCodeChallenge, TokenResponse, TokenUrl,
+	basic::{BasicClient, BasicTokenType},
+	AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EmptyExtraTokenFields,
+	PkceCodeChallenge, StandardTokenResponse, TokenUrl,
 };
 use tauri::{
 	api::http::{Body, Client, HttpRequestBuilder, ResponseType},
@@ -25,10 +26,10 @@ const LOCAL_CERT: &[u8] = include_bytes!("../localhost.pem");
 const CLIENT_SECRET: &str = env!("CLIENT_SECRET");
 
 #[tauri::command]
-pub async fn begin_oauth(
+pub async fn get_authorization_code(
 	app_handle: tauri::AppHandle,
 	state: tauri::State<'_, Client>,
-) -> Result<()> {
+) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>> {
 	let client = BasicClient::new(
 		ClientId::new(CLIENT_ID.to_owned()),
 		Some(ClientSecret::new(CLIENT_SECRET.to_owned())),
@@ -89,18 +90,7 @@ pub async fn begin_oauth(
 		.request_async(move |req| make_request(http, req))
 		.await?;
 
-	let refresh_token = token_result
-		.refresh_token()
-		.expect("didn't receive refresh token, this is very bad!");
-
-	let r = client
-		.exchange_refresh_token(refresh_token)
-		.request_async(move |req| make_request(http, req))
-		.await?;
-
-	dbg!(r);
-
-	Ok(())
+	Ok(token_result)
 }
 
 // Doing this to use the same http client I use everywhere else, for consistency.
