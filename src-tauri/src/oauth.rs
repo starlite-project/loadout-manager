@@ -134,6 +134,7 @@ async fn make_request(
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct D2OAuthResponse {
 	pub access_token: String,
 	pub expires_in: SystemTime,
