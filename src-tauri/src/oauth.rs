@@ -1,10 +1,19 @@
-use std::collections::HashMap;
+use std::{
+	collections::HashMap,
+	fmt::{Display, Formatter, Result as FmtResult},
+	time::{Duration, SystemTime},
+};
 
 use oauth2::{
-	basic::{BasicClient, BasicTokenType},
-	AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EmptyExtraTokenFields,
-	PkceCodeChallenge, StandardTokenResponse, TokenUrl,
+	basic::{
+		BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
+		BasicTokenType,
+	},
+	AuthUrl, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, CsrfToken,
+	ExtraTokenFields, PkceCodeChallenge, StandardRevocableToken, StandardTokenResponse,
+	TokenResponse, TokenUrl,
 };
+use serde::{Deserialize, Serialize};
 use tauri::{
 	api::http::{Body, Client, HttpRequestBuilder, ResponseType},
 	Manager,
@@ -29,8 +38,8 @@ const CLIENT_SECRET: &str = env!("CLIENT_SECRET");
 pub async fn get_authorization_code(
 	app_handle: tauri::AppHandle,
 	state: tauri::State<'_, Client>,
-) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>> {
-	let client = BasicClient::new(
+) -> Result<D2OAuthResponse> {
+	let client = D2OAuthClient::new(
 		ClientId::new(CLIENT_ID.to_owned()),
 		Some(ClientSecret::new(CLIENT_SECRET.to_owned())),
 		AuthUrl::new("https://bungie.net/en/oauth/authorize/".to_owned())?,
@@ -90,7 +99,7 @@ pub async fn get_authorization_code(
 		.request_async(move |req| make_request(http, req))
 		.await?;
 
-	Ok(token_result)
+	Ok(token_result.try_into()?)
 }
 
 // Doing this to use the same http client I use everywhere else, for consistency.
@@ -123,3 +132,77 @@ async fn make_request(
 		body: body.data,
 	})
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct D2OAuthResponse {
+	pub access_token: String,
+	pub expires_in: SystemTime,
+	pub refresh_token: String,
+	pub refresh_expires_in: SystemTime,
+	pub membership_id: String,
+}
+
+impl TryFrom<StandardTokenResponse<D2ExtraFields, BasicTokenType>> for D2OAuthResponse {
+	type Error = ConversionError;
+
+	fn try_from(
+		value: StandardTokenResponse<D2ExtraFields, BasicTokenType>,
+	) -> Result<Self, Self::Error> {
+		let now = SystemTime::now();
+
+		let access_token = value.access_token().secret().clone();
+
+		let expires_in = now + value.expires_in().ok_or(ConversionError)?;
+
+		let refresh_token = value
+			.refresh_token()
+			.map(|x| x.secret().clone())
+			.ok_or(ConversionError)?;
+
+		let refresh_expires_in = now
+			+ value
+				.extra_fields()
+				.refresh_expires_in
+				.map(Duration::from_secs)
+				.ok_or(ConversionError)?;
+
+		let membership_id = value.extra_fields().membership_id.clone();
+
+		Ok(D2OAuthResponse {
+			access_token,
+			expires_in,
+			refresh_token,
+			refresh_expires_in,
+			membership_id,
+		})
+	}
+}
+
+#[derive(Debug)]
+pub struct ConversionError;
+
+impl Display for ConversionError {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		f.write_str("failed to convert from standard response (this shouldn't happen and represents a bug in the Bungie API)")
+	}
+}
+
+impl std::error::Error for ConversionError {}
+
+type D2OAuthClient = OAuth2Client<
+	BasicErrorResponse,
+	StandardTokenResponse<D2ExtraFields, BasicTokenType>,
+	BasicTokenType,
+	BasicTokenIntrospectionResponse,
+	StandardRevocableToken,
+	BasicRevocationErrorResponse,
+>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct D2ExtraFields {
+	#[serde(skip_serializing_if = "Option::is_none")]
+	refresh_expires_in: Option<u64>,
+	membership_id: String,
+}
+
+impl ExtraTokenFields for D2ExtraFields {}
