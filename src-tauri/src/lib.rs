@@ -6,6 +6,7 @@ use std::{
 pub mod fetch;
 mod model;
 pub mod oauth;
+mod storage;
 pub mod util;
 
 use serde::{Serialize, Serializer};
