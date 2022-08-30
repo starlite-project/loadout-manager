@@ -11,6 +11,8 @@ pub mod util;
 
 use serde::{Serialize, Serializer};
 
+pub use self::storage::{Store, StoreBuilder};
+
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct Error(anyhow::Error);

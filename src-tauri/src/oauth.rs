@@ -1,5 +1,4 @@
 use std::{
-	collections::HashMap,
 	fmt::{Display, Formatter, Result as FmtResult},
 	time::{Duration, SystemTime},
 };
@@ -9,28 +8,16 @@ use oauth2::{
 		BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
 		BasicTokenType,
 	},
-	AuthUrl, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, CsrfToken,
-	ExtraTokenFields, PkceCodeChallenge, StandardRevocableToken, StandardTokenResponse,
-	TokenResponse, TokenUrl,
+	AuthUrl, Client as OAuth2Client, ClientId, ClientSecret, CsrfToken, ExtraTokenFields,
+	PkceCodeChallenge, StandardRevocableToken, StandardTokenResponse, TokenResponse, TokenUrl,
 };
 use serde::{Deserialize, Serialize};
 use tauri::{
 	api::http::{Body, Client, HttpRequestBuilder, ResponseType},
 	Manager,
 };
-use tiny_http::{Response, Server};
-use url::Url;
 
 use super::{fetch::CLIENT_ID, Result};
-
-#[cfg(windows)]
-const PRIVATE_HTTPS_KEY: &[u8] = include_bytes!("..\\localhost-key.pem");
-#[cfg(unix)]
-const PRIVATE_HTTPS_KEY: &[u8] = include_bytes!("../localhost-key.pem");
-#[cfg(windows)]
-const LOCAL_CERT: &[u8] = include_bytes!("..\\localhost.pem");
-#[cfg(unix)]
-const LOCAL_CERT: &[u8] = include_bytes!("../localhost.pem");
 
 const CLIENT_SECRET: &str = env!("CLIENT_SECRET");
 
@@ -57,49 +44,51 @@ pub async fn get_authorization_code(
 
 	let scope = app_handle.shell_scope();
 
-	let server = Server::https(
-		"127.0.0.1:8000",
-		tiny_http::SslConfig {
-			certificate: LOCAL_CERT.to_vec(),
-			private_key: PRIVATE_HTTPS_KEY.to_vec(),
-		},
-	)
-	.unwrap();
+	// let server = Server::https(
+	// 	"127.0.0.1:8000",
+	// 	tiny_http::SslConfig {
+	// 		certificate: LOCAL_CERT.to_vec(),
+	// 		private_key: PRIVATE_HTTPS_KEY.to_vec(),
+	// 	},
+	// )
+	// .unwrap();
 
 	scope.open(auth_url.as_str(), None)?;
 
-	let request = server.incoming_requests().next().unwrap();
+	// let request = server.incoming_requests().next().unwrap();
 
-	let response = Response::from_string("You may now close this tab");
+	// let response = Response::from_string("You may now close this tab");
 
-	let url = ("https://localhost:8000".to_owned() + request.url()).parse::<Url>()?;
+	// let url = ("https://localhost:8000".to_owned() + request.url()).parse::<Url>()?;
 
-	let query_params = url
-		.query_pairs()
-		.map(|(key, value)| (key.into_owned(), value.into_owned()))
-		.collect::<HashMap<String, String>>();
+	// let query_params = url
+	// 	.query_pairs()
+	// 	.map(|(key, value)| (key.into_owned(), value.into_owned()))
+	// 	.collect::<HashMap<String, String>>();
 
-	let state_code = query_params
-		.get("state")
-		.expect("failed to find state, this is a big problem!");
+	// let state_code = query_params
+	// 	.get("state")
+	// 	.expect("failed to find state, this is a big problem!");
 
-	assert_eq!(state_code, csrf_token.secret());
+	// assert_eq!(state_code, csrf_token.secret());
 
-	let auth_code = query_params
-		.get("code")
-		.expect("failed to find auth code, this is a big problem!");
+	// let auth_code = query_params
+	// 	.get("code")
+	// 	.expect("failed to find auth code, this is a big problem!");
 
-	request.respond(response)?;
+	// request.respond(response)?;
 
-	let http = &*state;
+	// let http = &*state;
 
-	let token_result = client
-		.exchange_code(AuthorizationCode::new(auth_code.clone()))
-		.set_pkce_verifier(pkce_verifier)
-		.request_async(move |req| make_request(http, req))
-		.await?;
+	// let token_result = client
+	// 	.exchange_code(AuthorizationCode::new(auth_code.clone()))
+	// 	.set_pkce_verifier(pkce_verifier)
+	// 	.request_async(move |req| make_request(http, req))
+	// 	.await?;
 
-	Ok(token_result.try_into()?)
+	// Ok(token_result.try_into()?)
+
+	todo!()
 }
 
 // Doing this to use the same http client I use everywhere else, for consistency.
@@ -141,6 +130,19 @@ pub struct D2OAuthResponse {
 	pub refresh_token: String,
 	pub refresh_expires_in: SystemTime,
 	pub membership_id: String,
+}
+
+impl Default for D2OAuthResponse {
+	fn default() -> Self {
+		let now = SystemTime::now();
+		Self {
+			access_token: String::new(),
+			expires_in: now,
+			refresh_token: String::new(),
+			refresh_expires_in: now,
+			membership_id: String::new(),
+		}
+	}
 }
 
 impl TryFrom<StandardTokenResponse<D2ExtraFields, BasicTokenType>> for D2OAuthResponse {
