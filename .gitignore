@@ -7,10 +7,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Build files
 node_modules
 dist
 dist-ssr
 *.local
+*/target
+target/
 
 # Editor directories and files
 .vscode/*
@@ -23,6 +26,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# Local certificates
+# Local secrets
 *.pem
 *.pfx
+*/.env
+!*/.example.env
