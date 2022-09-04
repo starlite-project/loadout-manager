@@ -6,10 +6,12 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use app::{
-	oauth::D2Token,
-	plugins::{fern::colors, LogLevel, LogTarget, LoggerBuilder, StoreBuilder},
+	fetch::{CLIENT_ID, CLIENT_SECRET},
+	oauth::{D2OAuthClient, D2Token},
+	plugins::{fern::colors, LogLevel, LogTarget, LoggerBuilder, RotationStrategy, StoreBuilder},
 	Result,
 };
+use oauth2::{AuthUrl, ClientId, ClientSecret, TokenUrl};
 use tauri::api::http::ClientBuilder;
 use tokio::runtime::Builder as RtBuilder;
 
@@ -27,6 +29,15 @@ fn main() -> Result<()> {
 			THREAD_ID.fetch_sub(1, Ordering::SeqCst);
 		})
 		.build()?;
+
+	let oauth_client = D2OAuthClient::new(
+		ClientId::new(CLIENT_ID.to_owned()),
+		Some(ClientSecret::new(CLIENT_SECRET.to_owned())),
+		AuthUrl::new("https://www.bungie.net/en/oauth/authorize/".to_owned())?,
+		Some(TokenUrl::new(
+			"https://www.bungie.net/Platform/App/OAuth/Token/".to_owned(),
+		)?),
+	);
 
 	tauri::async_runtime::set(runtime.handle().clone());
 
@@ -49,10 +60,12 @@ fn main() -> Result<()> {
 			debug: colors::Color::Cyan,
 			trace: colors::Color::Magenta,
 		})
+		.rotation_strategy(RotationStrategy::KeepAll)
 		.build();
 
 	tauri::Builder::default()
 		.manage(client)
+		.manage(oauth_client)
 		.plugin(store)
 		.plugin(log)
 		.invoke_handler(tauri::generate_handler![

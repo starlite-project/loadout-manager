@@ -9,9 +9,8 @@ use oauth2::{
 		BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
 		BasicTokenType,
 	},
-	AuthUrl, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, CsrfToken,
-	ExtraTokenFields, PkceCodeChallenge, StandardRevocableToken, StandardTokenResponse,
-	TokenResponse, TokenUrl,
+	AccessToken, AuthorizationCode, Client as OAuth2Client, CsrfToken, ExtraTokenFields,
+	PkceCodeChallenge, RefreshToken, StandardRevocableToken, StandardTokenResponse, TokenResponse,
 };
 use serde::{Deserialize, Serialize};
 use tauri::{
@@ -20,29 +19,16 @@ use tauri::{
 };
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-use super::{
-	fetch::{API_KEY, CLIENT_ID},
-	Result,
-};
+use super::{fetch::API_KEY, Result};
 use crate::plugins::Store;
-
-const CLIENT_SECRET: &str = env!("CLIENT_SECRET");
 
 #[tauri::command]
 pub async fn get_authorization_code(
 	app_handle: tauri::AppHandle,
+	client: tauri::State<'_, D2OAuthClient>,
 	state: tauri::State<'_, Client>,
 	storage: tauri::State<'_, Store>,
 ) -> Result<()> {
-	let client = D2OAuthClient::new(
-		ClientId::new(CLIENT_ID.to_owned()),
-		Some(ClientSecret::new(CLIENT_SECRET.to_owned())),
-		AuthUrl::new("https://bungie.net/en/oauth/authorize/".to_owned())?,
-		Some(TokenUrl::new(
-			"https://www.bungie.net/Platform/App/OAuth/Token/".to_owned(),
-		)?),
-	);
-
 	let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
 
 	let (auth_url, csrf_token) = client
@@ -90,7 +76,11 @@ pub async fn get_authorization_code(
 		(raw_values[0], raw_values[1])
 	};
 
-	log::debug!("received code {} with state {} from bungie", code, oauth_state);
+	log::debug!(
+		"received code {} with state {} from bungie",
+		code,
+		oauth_state
+	);
 
 	if oauth_state != csrf_token.secret().as_str() {
 		log::error!("state was invalid, something has been compromised, bailing application");
@@ -107,7 +97,9 @@ pub async fn get_authorization_code(
 
 	let d2_token = D2Token::try_from(token_result)?;
 
-	storage.insert("auth_data".to_owned(), serde_json::to_value(&d2_token)?).await;
+	storage
+		.insert("auth_data".to_owned(), serde_json::to_value(&d2_token)?)
+		.await;
 
 	Ok(())
 }
@@ -150,19 +142,50 @@ pub struct D2Token {
 	pub expires_in: SystemTime,
 	pub refresh_token: String,
 	pub refresh_expires_in: SystemTime,
-	pub membership_id: String,
+	pub membership_id: i64,
+	received: SystemTime,
 }
 
 impl Default for D2Token {
 	fn default() -> Self {
-		let now = SystemTime::now();
+		let now = SystemTime::UNIX_EPOCH;
 		Self {
 			access_token: String::new(),
 			expires_in: now,
 			refresh_token: String::new(),
 			refresh_expires_in: now,
-			membership_id: String::new(),
+			membership_id: 0,
+			received: now,
 		}
+	}
+}
+
+impl TryFrom<D2Token> for StandardTokenResponse<D2ExtraFields, BasicTokenType> {
+	type Error = ConversionError;
+
+	fn try_from(old: D2Token) -> Result<Self, Self::Error> {
+		let time_since_expires = old
+			.expires_in
+			.duration_since(old.received)
+			.map_err(|_| ConversionError)?;
+		let time_since_refresh_expires = old
+			.refresh_expires_in
+			.duration_since(old.received)
+			.map_err(|_| ConversionError)?;
+		let mut new = Self::new(
+			AccessToken::new(old.access_token),
+			BasicTokenType::Bearer,
+			D2ExtraFields {
+				refresh_expires_in: Some(time_since_refresh_expires.as_secs()),
+				membership_id: old.membership_id,
+			},
+		);
+
+		new.set_refresh_token(Some(RefreshToken::new(old.refresh_token)));
+
+		new.set_expires_in(Some(&time_since_expires));
+
+		Ok(new)
 	}
 }
 
@@ -198,6 +221,7 @@ impl TryFrom<StandardTokenResponse<D2ExtraFields, BasicTokenType>> for D2Token {
 			refresh_token,
 			refresh_expires_in,
 			membership_id,
+			received: now,
 		})
 	}
 }
@@ -213,7 +237,7 @@ impl Display for ConversionError {
 
 impl std::error::Error for ConversionError {}
 
-type D2OAuthClient = OAuth2Client<
+pub type D2OAuthClient = OAuth2Client<
 	BasicErrorResponse,
 	StandardTokenResponse<D2ExtraFields, BasicTokenType>,
 	BasicTokenType,
@@ -223,10 +247,11 @@ type D2OAuthClient = OAuth2Client<
 >;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct D2ExtraFields {
+pub struct D2ExtraFields {
 	#[serde(skip_serializing_if = "Option::is_none")]
 	refresh_expires_in: Option<u64>,
-	membership_id: String,
+	#[serde(deserialize_with = "crate::util::deserialize_string_as")]
+	membership_id: i64,
 }
 
 impl ExtraTokenFields for D2ExtraFields {}

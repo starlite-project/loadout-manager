@@ -119,6 +119,10 @@ impl Store {
 	pub async fn insert(&self, key: String, value: JsonValue) {
 		self.cache.write().await.insert(key, value);
 	}
+
+	pub async fn get(&self, key: &str) -> Option<JsonValue> {
+		self.cache.read().await.get(key).cloned()
+	}
 }
 
 fn get_store_path<R: Runtime>(handle: &AppHandle<R>) -> Option<PathBuf> {

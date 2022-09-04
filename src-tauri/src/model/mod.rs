@@ -1,8 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 mod application;
+mod user;
 
-pub use self::application::{Application, ApplicationStatus};
+pub use self::{
+	application::{Application, ApplicationStatus},
+	user::GeneralUser,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
