@@ -3,21 +3,28 @@ use std::{
 	time::{Duration, SystemTime},
 };
 
+use futures_util::{SinkExt, StreamExt};
 use oauth2::{
 	basic::{
 		BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
 		BasicTokenType,
 	},
-	AuthUrl, Client as OAuth2Client, ClientId, ClientSecret, CsrfToken, ExtraTokenFields,
-	PkceCodeChallenge, StandardRevocableToken, StandardTokenResponse, TokenResponse, TokenUrl,
+	AuthUrl, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, CsrfToken,
+	ExtraTokenFields, PkceCodeChallenge, StandardRevocableToken, StandardTokenResponse,
+	TokenResponse, TokenUrl,
 };
 use serde::{Deserialize, Serialize};
 use tauri::{
 	api::http::{Body, Client, HttpRequestBuilder, ResponseType},
 	Manager,
 };
+use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-use super::{fetch::CLIENT_ID, Result};
+use super::{
+	fetch::{API_KEY, CLIENT_ID},
+	Result,
+};
+use crate::plugins::Store;
 
 const CLIENT_SECRET: &str = env!("CLIENT_SECRET");
 
@@ -25,7 +32,8 @@ const CLIENT_SECRET: &str = env!("CLIENT_SECRET");
 pub async fn get_authorization_code(
 	app_handle: tauri::AppHandle,
 	state: tauri::State<'_, Client>,
-) -> Result<D2OAuthResponse> {
+	storage: tauri::State<'_, Store>,
+) -> Result<()> {
 	let client = D2OAuthClient::new(
 		ClientId::new(CLIENT_ID.to_owned()),
 		Some(ClientSecret::new(CLIENT_SECRET.to_owned())),
@@ -42,53 +50,66 @@ pub async fn get_authorization_code(
 		.set_pkce_challenge(pkce_challenge)
 		.url();
 
-	let scope = app_handle.shell_scope();
+	let mut ws = connect_async("wss://localhost:3030/socket").await?.0;
 
-	// let server = Server::https(
-	// 	"127.0.0.1:8000",
-	// 	tiny_http::SslConfig {
-	// 		certificate: LOCAL_CERT.to_vec(),
-	// 		private_key: PRIVATE_HTTPS_KEY.to_vec(),
-	// 	},
-	// )
-	// .unwrap();
+	let data_to_send = serde_json::json!({
+		"api_key": API_KEY.to_owned(),
+		"state": csrf_token.secret().to_owned(),
+	});
+
+	ws.send(Message::Text(serde_json::to_string(&data_to_send)?))
+		.await?;
+
+	let scope = app_handle.shell_scope();
 
 	scope.open(auth_url.as_str(), None)?;
 
-	// let request = server.incoming_requests().next().unwrap();
+	let mut raw_code = String::new();
+	while let Some(Ok(c)) = ws.next().await {
+		if c.is_ping() {
+			ws.send(Message::Pong(c.into_data())).await?;
+			continue;
+		}
 
-	// let response = Response::from_string("You may now close this tab");
+		if !c.is_text() {
+			panic!("invalid message received");
+		}
 
-	// let url = ("https://localhost:8000".to_owned() + request.url()).parse::<Url>()?;
+		raw_code.push_str(&c.to_text()?);
+		break;
+	}
 
-	// let query_params = url
-	// 	.query_pairs()
-	// 	.map(|(key, value)| (key.into_owned(), value.into_owned()))
-	// 	.collect::<HashMap<String, String>>();
+	let (code, oauth_state) = {
+		let raw_values = raw_code.split(':').collect::<Vec<_>>();
+		if raw_values.len() != 2 {
+			return Err(crate::Error(anyhow::anyhow!(
+				"didn't receive both code and state"
+			)));
+		}
 
-	// let state_code = query_params
-	// 	.get("state")
-	// 	.expect("failed to find state, this is a big problem!");
+		(raw_values[0], raw_values[1])
+	};
 
-	// assert_eq!(state_code, csrf_token.secret());
+	log::debug!("received code {} with state {} from bungie", code, oauth_state);
 
-	// let auth_code = query_params
-	// 	.get("code")
-	// 	.expect("failed to find auth code, this is a big problem!");
+	if oauth_state != csrf_token.secret().as_str() {
+		log::error!("state was invalid, something has been compromised, bailing application");
 
-	// request.respond(response)?;
+		std::process::abort();
+	}
 
-	// let http = &*state;
+	let http = &*state;
+	let token_result = client
+		.exchange_code(AuthorizationCode::new(code.to_owned()))
+		.set_pkce_verifier(pkce_verifier)
+		.request_async(move |req| make_request(http, req))
+		.await?;
 
-	// let token_result = client
-	// 	.exchange_code(AuthorizationCode::new(auth_code.clone()))
-	// 	.set_pkce_verifier(pkce_verifier)
-	// 	.request_async(move |req| make_request(http, req))
-	// 	.await?;
+	let d2_token = D2Token::try_from(token_result)?;
 
-	// Ok(token_result.try_into()?)
+	storage.insert("auth_data".to_owned(), serde_json::to_value(&d2_token)?).await;
 
-	todo!()
+	Ok(())
 }
 
 // Doing this to use the same http client I use everywhere else, for consistency.
@@ -124,7 +145,7 @@ async fn make_request(
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct D2OAuthResponse {
+pub struct D2Token {
 	pub access_token: String,
 	pub expires_in: SystemTime,
 	pub refresh_token: String,
@@ -132,7 +153,7 @@ pub struct D2OAuthResponse {
 	pub membership_id: String,
 }
 
-impl Default for D2OAuthResponse {
+impl Default for D2Token {
 	fn default() -> Self {
 		let now = SystemTime::now();
 		Self {
@@ -145,7 +166,7 @@ impl Default for D2OAuthResponse {
 	}
 }
 
-impl TryFrom<StandardTokenResponse<D2ExtraFields, BasicTokenType>> for D2OAuthResponse {
+impl TryFrom<StandardTokenResponse<D2ExtraFields, BasicTokenType>> for D2Token {
 	type Error = ConversionError;
 
 	fn try_from(
@@ -171,7 +192,7 @@ impl TryFrom<StandardTokenResponse<D2ExtraFields, BasicTokenType>> for D2OAuthRe
 
 		let membership_id = value.extra_fields().membership_id.clone();
 
-		Ok(D2OAuthResponse {
+		Ok(D2Token {
 			access_token,
 			expires_in,
 			refresh_token,

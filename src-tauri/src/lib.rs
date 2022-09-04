@@ -6,12 +6,10 @@ use std::{
 pub mod fetch;
 mod model;
 pub mod oauth;
-mod storage;
+pub mod plugins;
 pub mod util;
 
 use serde::{Serialize, Serializer};
-
-pub use self::storage::{Store, StoreBuilder};
 
 #[derive(Debug)]
 #[repr(transparent)]

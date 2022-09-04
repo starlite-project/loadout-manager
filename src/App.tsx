@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css'
-import { getToken } from './token';
+import { OauthButton } from './OauthButton';
 
 export default function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    // const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+    // return (
+    //     <button onClick={async () => await getToken()}>Login</button>
+    // );
     return (
-        <button onClick={async () => await getToken()}>Login</button>
-    );
+        <OauthButton />
+    )
 }

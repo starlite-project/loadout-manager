@@ -10,7 +10,7 @@ use crate::{
 
 const API_BASE: &str = "https://bungie.net/Platform";
 
-const API_KEY: &str = env!("API_KEY");
+pub const API_KEY: &str = env!("API_KEY");
 
 pub const CLIENT_ID: &str = env!("CLIENT_ID");
 

@@ -115,6 +115,10 @@ impl Store {
 
 		Ok(())
 	}
+
+	pub async fn insert(&self, key: String, value: JsonValue) {
+		self.cache.write().await.insert(key, value);
+	}
 }
 
 fn get_store_path<R: Runtime>(handle: &AppHandle<R>) -> Option<PathBuf> {

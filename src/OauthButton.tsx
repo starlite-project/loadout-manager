@@ -1,6 +1,7 @@
 import React from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
-import { Store } from 'tauri-plugin-store-api';
+import { Store } from './plugins/Store';
+import { error } from './plugins/Log';
 
 export class OauthButton extends React.Component<{}, { isLoggedIn: boolean }> {
     public constructor(props: {}) {
@@ -10,15 +11,19 @@ export class OauthButton extends React.Component<{}, { isLoggedIn: boolean }> {
     }
 
     private async handleLoginClick() {
-        const code = await invoke('get_authorization_code');
+        // const code = await invoke('get_authorization_code');
+        let code;
 
-        const store = new Store('.token');
+        try {
+            code = await invoke('get_authorization_code');
+        } catch (err) {
+            await error((err as Error).message);
+            return;
+        }
+
+        const store = new Store();
 
         console.log(await store.get('login'));
-
-        await store.set('login', code);
-
-        console.log(store);
 
         this.setState({
             isLoggedIn: true,

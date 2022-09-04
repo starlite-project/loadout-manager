@@ -5,7 +5,11 @@
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use app::{oauth::D2OAuthResponse, Result, StoreBuilder};
+use app::{
+	oauth::D2Token,
+	plugins::{fern::colors, LogLevel, LogTarget, LoggerBuilder, StoreBuilder},
+	Result,
+};
 use tauri::api::http::ClientBuilder;
 use tokio::runtime::Builder as RtBuilder;
 
@@ -31,13 +35,26 @@ fn main() -> Result<()> {
 	let store = StoreBuilder::new()
 		.default(
 			"auth_data".to_owned(),
-			serde_json::to_value(D2OAuthResponse::default())?,
+			serde_json::to_value(D2Token::default())?,
 		)
+		.build();
+
+	let log = LoggerBuilder::new()
+		.level(LogLevel::Trace)
+		.target(LogTarget::Webview)
+		.with_colors(colors::ColoredLevelConfig {
+			error: colors::Color::Red,
+			warn: colors::Color::Yellow,
+			info: colors::Color::White,
+			debug: colors::Color::Cyan,
+			trace: colors::Color::Magenta,
+		})
 		.build();
 
 	tauri::Builder::default()
 		.manage(client)
 		.plugin(store)
+		.plugin(log)
 		.invoke_handler(tauri::generate_handler![
 			app::fetch::get_bungie_applications,
 			app::oauth::get_authorization_code,
