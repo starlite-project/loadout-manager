@@ -67,11 +67,12 @@ pub async fn get_authorization_code(
 		}
 
 		raw_code.push_str(&c.to_text()?);
-		let _ = ws.close(Some(CloseFrame {
-			code: CloseCode::Normal,
-			reason: "received code".into(),
-		}))
-		.await;
+		let _ = ws
+			.close(Some(CloseFrame {
+				code: CloseCode::Normal,
+				reason: "received code".into(),
+			}))
+			.await;
 		break;
 	}
 
@@ -95,7 +96,9 @@ pub async fn get_authorization_code(
 	if oauth_state != csrf_token.secret().as_str() {
 		log::error!("state was invalid, something has been compromised, bailing application");
 
-		std::process::abort();
+		app_handle.exit(1);
+		// this code is unreachable, but it's for peace of mind
+		return Ok(());
 	}
 
 	let client = &*http;
@@ -155,13 +158,12 @@ pub async fn is_token_valid(
 	let auth_data_nullable = storage.get("auth_data").await;
 
 	if let Some(auth) = auth_data_nullable {
-		let now = SystemTime::now();
-		let expiration = match serde_json::from_value::<D2Token>(auth) {
-			Ok(v) => v.expires_in,
+		let token = match serde_json::from_value::<D2Token>(auth) {
+			Ok(v) => v,
 			Err(_) => return Ok(false),
 		};
 
-		Ok(expiration > now)
+		Ok(token.is_valid())
 	} else {
 		Ok(false)
 	}
@@ -174,13 +176,12 @@ pub async fn is_token_refreshable(
 	let auth_data_nullable = storage.get("auth_data").await;
 
 	if let Some(auth) = auth_data_nullable {
-		let now = SystemTime::now();
-		let refresh_expires_in = match serde_json::from_value::<D2Token>(auth) {
-			Ok(v) => v.refresh_expires_in,
+		let token = match serde_json::from_value::<D2Token>(auth) {
+			Ok(v) => v,
 			Err(_) => return Ok(false),
 		};
 
-		Ok(refresh_expires_in > now)
+		Ok(token.is_refreshable())
 	} else {
 		Ok(false)
 	}
@@ -226,6 +227,16 @@ pub struct D2Token {
 	pub refresh_expires_in: SystemTime,
 	pub membership_id: i64,
 	received: SystemTime,
+}
+
+impl D2Token {
+	pub fn is_valid(&self) -> bool {
+		self.expires_in > SystemTime::now()
+	}
+
+	pub fn is_refreshable(&self) -> bool {
+		self.refresh_expires_in > SystemTime::now()
+	}
 }
 
 impl Default for D2Token {
