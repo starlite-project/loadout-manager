@@ -6,13 +6,10 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use app::{
-	fetch::{CLIENT_ID, CLIENT_SECRET},
-	oauth::{D2OAuthClient, D2Token},
+	oauth::D2Token,
 	plugins::{fern::colors, LogLevel, LogTarget, LoggerBuilder, RotationStrategy, StoreBuilder},
-	Result,
+	LoadoutClient, Result,
 };
-use oauth2::{AuthUrl, ClientId, ClientSecret, TokenUrl};
-use tauri::api::http::ClientBuilder;
 use tokio::runtime::Builder as RtBuilder;
 
 static THREAD_ID: AtomicUsize = AtomicUsize::new(1);
@@ -30,18 +27,7 @@ fn main() -> Result<()> {
 		})
 		.build()?;
 
-	let oauth_client = D2OAuthClient::new(
-		ClientId::new(CLIENT_ID.to_owned()),
-		Some(ClientSecret::new(CLIENT_SECRET.to_owned())),
-		AuthUrl::new("https://www.bungie.net/en/oauth/authorize/".to_owned())?,
-		Some(TokenUrl::new(
-			"https://www.bungie.net/Platform/App/OAuth/Token/".to_owned(),
-		)?),
-	);
-
 	tauri::async_runtime::set(runtime.handle().clone());
-
-	let client = ClientBuilder::new().build()?;
 
 	let store = StoreBuilder::new()
 		.default(
@@ -64,13 +50,16 @@ fn main() -> Result<()> {
 		.build();
 
 	tauri::Builder::default()
-		.manage(client)
-		.manage(oauth_client)
+		.manage(LoadoutClient::new()?)
 		.plugin(store)
 		.plugin(log)
 		.invoke_handler(tauri::generate_handler![
 			app::fetch::get_bungie_applications,
 			app::oauth::get_authorization_code,
+			app::oauth::is_token_valid,
+			app::oauth::refresh_token,
+			app::oauth::is_token_refreshable,
+			app::oauth::delete_token,
 		])
 		.run(tauri::generate_context!())?;
 	Ok(())

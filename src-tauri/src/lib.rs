@@ -4,12 +4,15 @@ use std::{
 };
 
 pub mod fetch;
-mod model;
+mod http;
+pub mod model;
 pub mod oauth;
 pub mod plugins;
 pub mod util;
 
 use serde::{Serialize, Serializer};
+
+pub use self::http::LoadoutClient;
 
 #[derive(Debug)]
 #[repr(transparent)]
@@ -31,7 +34,7 @@ where
 }
 
 impl From<Error> for anyhow::Error {
-	fn from(e: Error) -> anyhow::Error {
+	fn from(e: Error) -> Self {
 		e.0
 	}
 }

@@ -14,24 +14,29 @@ use oauth2::{
 };
 use serde::{Deserialize, Serialize};
 use tauri::{
-	api::http::{Body, Client, HttpRequestBuilder, ResponseType},
+	api::http::{Body, HttpRequestBuilder, ResponseType},
 	Manager,
 };
-use tokio_tungstenite::{connect_async, tungstenite::Message};
+use tokio_tungstenite::{
+	connect_async,
+	tungstenite::{
+		protocol::{frame::coding::CloseCode, CloseFrame},
+		Message,
+	},
+};
 
-use super::{fetch::API_KEY, Result};
-use crate::plugins::Store;
+use super::{plugins::Store, util::API_KEY, Result};
+use crate::{util::Impossible, LoadoutClient};
 
 #[tauri::command]
 pub async fn get_authorization_code(
 	app_handle: tauri::AppHandle,
-	client: tauri::State<'_, D2OAuthClient>,
-	state: tauri::State<'_, Client>,
+	http: tauri::State<'_, LoadoutClient>,
 	storage: tauri::State<'_, Store>,
 ) -> Result<()> {
 	let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
 
-	let (auth_url, csrf_token) = client
+	let (auth_url, csrf_token) = http
 		.authorize_url(CsrfToken::new_random)
 		.set_pkce_challenge(pkce_challenge)
 		.url();
@@ -62,6 +67,11 @@ pub async fn get_authorization_code(
 		}
 
 		raw_code.push_str(&c.to_text()?);
+		let _ = ws.close(Some(CloseFrame {
+			code: CloseCode::Normal,
+			reason: "received code".into(),
+		}))
+		.await;
 		break;
 	}
 
@@ -88,11 +98,12 @@ pub async fn get_authorization_code(
 		std::process::abort();
 	}
 
-	let http = &*state;
-	let token_result = client
+	let client = &*http;
+
+	let token_result = http
 		.exchange_code(AuthorizationCode::new(code.to_owned()))
 		.set_pkce_verifier(pkce_verifier)
-		.request_async(move |req| make_request(http, req))
+		.request_async(move |req| make_request(client, req))
 		.await?;
 
 	let d2_token = D2Token::try_from(token_result)?;
@@ -104,9 +115,80 @@ pub async fn get_authorization_code(
 	Ok(())
 }
 
+#[tauri::command]
+pub async fn delete_token(storage: tauri::State<'_, Store>) -> Result<bool, Impossible> {
+	let flag = storage.remove("auth_data").await.is_some();
+	Ok(flag)
+}
+
+#[tauri::command]
+pub async fn refresh_token(
+	http: tauri::State<'_, LoadoutClient>,
+	storage: tauri::State<'_, Store>,
+) -> Result<()> {
+	let old_auth_data = storage.get("auth_data").await.expect("no auth data found");
+
+	let json = serde_json::from_value::<D2Token>(old_auth_data).expect("invalid JSON");
+
+	let refresh_token = RefreshToken::new(json.refresh_token);
+
+	let client = &*http;
+
+	let new_auth_data = http
+		.exchange_refresh_token(&refresh_token)
+		.request_async(|req| make_request(client, req))
+		.await?;
+
+	let new_token = D2Token::try_from(new_auth_data)?;
+
+	storage
+		.insert("auth_data".to_owned(), serde_json::to_value(&new_token)?)
+		.await;
+
+	Ok(())
+}
+
+#[tauri::command]
+pub async fn is_token_valid(
+	storage: tauri::State<'_, Store>,
+) -> Result<bool, crate::util::Impossible> {
+	let auth_data_nullable = storage.get("auth_data").await;
+
+	if let Some(auth) = auth_data_nullable {
+		let now = SystemTime::now();
+		let expiration = match serde_json::from_value::<D2Token>(auth) {
+			Ok(v) => v.expires_in,
+			Err(_) => return Ok(false),
+		};
+
+		Ok(expiration > now)
+	} else {
+		Ok(false)
+	}
+}
+
+#[tauri::command]
+pub async fn is_token_refreshable(
+	storage: tauri::State<'_, Store>,
+) -> Result<bool, crate::util::Impossible> {
+	let auth_data_nullable = storage.get("auth_data").await;
+
+	if let Some(auth) = auth_data_nullable {
+		let now = SystemTime::now();
+		let refresh_expires_in = match serde_json::from_value::<D2Token>(auth) {
+			Ok(v) => v.refresh_expires_in,
+			Err(_) => return Ok(false),
+		};
+
+		Ok(refresh_expires_in > now)
+	} else {
+		Ok(false)
+	}
+}
+
 // Doing this to use the same http client I use everywhere else, for consistency.
 async fn make_request(
-	client: &tauri::api::http::Client,
+	client: &LoadoutClient,
 	req: oauth2::HttpRequest,
 ) -> Result<oauth2::HttpResponse, oauth2::reqwest::Error<tauri::api::Error>> {
 	let builder = HttpRequestBuilder::new(req.method.to_string(), &req.url)

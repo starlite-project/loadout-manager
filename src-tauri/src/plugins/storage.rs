@@ -61,7 +61,7 @@ impl StoreBuilder {
 
 					file.read_to_end(&mut data)?;
 
-					let cache = serde_json::from_slice(&data)?;
+					let cache = serde_json::from_slice(&data).unwrap_or_default();
 
 					Store {
 						cache: RwLock::new(cache),
@@ -123,6 +123,38 @@ impl Store {
 	pub async fn get(&self, key: &str) -> Option<JsonValue> {
 		self.cache.read().await.get(key).cloned()
 	}
+
+	pub async fn contains_key(&self, key: &str) -> bool {
+		self.cache.read().await.contains_key(key)
+	}
+
+	pub async fn remove(&self, key: &str) -> Option<JsonValue> {
+		self.cache.write().await.remove(key)
+	}
+
+	pub async fn clear(&self) {
+		self.cache.write().await.clear();
+	}
+
+	pub async fn keys<I: FromIterator<String>>(&self) -> I {
+		self.cache
+			.read()
+			.await
+			.keys()
+			.into_iter()
+			.cloned()
+			.collect()
+	}
+
+	pub async fn values<I: FromIterator<JsonValue>>(&self) -> I {
+		self.cache
+			.read()
+			.await
+			.values()
+			.into_iter()
+			.cloned()
+			.collect()
+	}
 }
 
 fn get_store_path<R: Runtime>(handle: &AppHandle<R>) -> Option<PathBuf> {
@@ -143,8 +175,7 @@ async fn set<R: Runtime>(
 	key: String,
 	value: JsonValue,
 ) -> Result<()> {
-	let mut cache = store.cache.write().await;
-	cache.insert(key.clone(), value.clone());
+	store.insert(key.clone(), value.clone()).await;
 	let _ = window.emit(
 		"store://change",
 		ChangePayload {
@@ -157,20 +188,17 @@ async fn set<R: Runtime>(
 
 #[tauri::command]
 async fn get(store: State<'_, Store>, key: &str) -> Result<Option<JsonValue>> {
-	let cache = store.cache.read().await;
-	Ok(cache.get(key).cloned())
+	Ok(store.get(key).await)
 }
 
 #[tauri::command]
 async fn has(store: State<'_, Store>, key: &str) -> Result<bool> {
-	let cache = store.cache.read().await;
-	Ok(cache.contains_key(key))
+	Ok(store.contains_key(key).await)
 }
 
 #[tauri::command]
 async fn delete<R: Runtime>(window: Window<R>, store: State<'_, Store>, key: &str) -> Result<bool> {
-	let mut cache = store.cache.write().await;
-	let flag = cache.remove(key).is_some();
+	let flag = store.remove(key).await.is_some();
 	if flag {
 		let _ = window.emit(
 			"store://change",
@@ -186,9 +214,8 @@ async fn delete<R: Runtime>(window: Window<R>, store: State<'_, Store>, key: &st
 
 #[tauri::command]
 async fn clear<R: Runtime>(window: Window<R>, store: State<'_, Store>) -> Result<()> {
-	let mut cache = store.cache.write().await;
-	let keys = cache.keys().cloned().collect::<Vec<String>>();
-	cache.clear();
+	let keys = store.keys::<Vec<_>>().await;
+	store.clear().await;
 	for key in keys {
 		let _ = window.emit(
 			"store://change",
@@ -204,14 +231,12 @@ async fn clear<R: Runtime>(window: Window<R>, store: State<'_, Store>) -> Result
 
 #[tauri::command]
 async fn keys(store: State<'_, Store>) -> Result<Vec<String>> {
-	let cache = store.cache.read().await;
-	Ok(cache.keys().cloned().collect())
+	Ok(store.keys().await)
 }
 
 #[tauri::command]
 async fn values(store: State<'_, Store>) -> Result<Vec<JsonValue>> {
-	let cache = store.cache.read().await;
-	Ok(cache.values().cloned().collect())
+	Ok(store.values().await)
 }
 
 #[tauri::command]
