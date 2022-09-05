@@ -4,10 +4,9 @@ use std::{
 	error::Error,
 	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	hash::{Hash, Hasher},
-	str::FromStr,
 };
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 
 pub const API_BASE: &str = "https://bungie.net/Platform";
 
@@ -17,14 +16,29 @@ pub const CLIENT_ID: &str = env!("CLIENT_ID");
 
 pub const CLIENT_SECRET: &str = env!("CLIENT_SECRET");
 
-pub fn deserialize_string_as<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-where
-	D: Deserializer<'de>,
-	T: FromStr,
-	<T as FromStr>::Err: Display,
-{
-	let s = String::deserialize(deserializer)?;
-	s.parse().map_err(serde::de::Error::custom)
+pub mod values_as_strings {
+	use std::{fmt::Display, str::FromStr};
+
+	use serde::{Deserialize, Deserializer, Serializer};
+
+	pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+	where
+		D: Deserializer<'de>,
+		T: FromStr,
+		<T as FromStr>::Err: Display,
+	{
+		let s = String::deserialize(deserializer)?;
+		s.parse().map_err(serde::de::Error::custom)
+	}
+
+	pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+		T: ToString,
+	{
+		let s = value.to_string();
+		serializer.serialize_str(&s)
+	}
 }
 
 #[derive(Copy, Serialize, Deserialize)]

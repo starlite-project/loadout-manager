@@ -29,7 +29,10 @@ export const App = () => {
     }, [loggedIn]);
 
     return loggedIn ? (
-        <LogoutButton setLoggedIn={setLoggedIn} />
+        // <LogoutButton setLoggedIn={setLoggedIn} />
+        <div>
+            <LogoutButton setLoggedIn={setLoggedIn} />
+        </div>
     ) : (
         <LoginButton setLoggedIn={setLoggedIn} />
     )

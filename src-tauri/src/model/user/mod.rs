@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneralUser {
-    #[serde(deserialize_with = "crate::util::deserialize_string_as")]
+    #[serde(with = "crate::util::values_as_strings")]
     pub membership_id: i64,
     pub unique_name: String,
     pub normalized_name: String,
@@ -11,7 +11,7 @@ pub struct GeneralUser {
     pub profile_picture: i32,
     pub profile_theme: i32,
     pub user_title: i32,
-    #[serde(deserialize_with = "crate::util::deserialize_string_as")]
+    #[serde(with = "crate::util::values_as_strings")]
     pub success_message_flags: i64,
     pub is_deleted: bool,
     pub about: String,

@@ -8,7 +8,7 @@ pub struct Application {
 	pub name: String,
 	pub redirect_url: String,
 	pub link: String,
-	#[serde(deserialize_with = "crate::util::deserialize_string_as")]
+	#[serde(with = "crate::util::values_as_strings")]
 	pub scope: i64,
 	#[serde(skip_serializing_if = "Option::is_none")]
 	pub origin: Option<String>,

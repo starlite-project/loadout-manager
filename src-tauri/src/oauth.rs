@@ -343,7 +343,7 @@ pub type D2OAuthClient = OAuth2Client<
 pub struct D2ExtraFields {
 	#[serde(skip_serializing_if = "Option::is_none")]
 	refresh_expires_in: Option<u64>,
-	#[serde(deserialize_with = "crate::util::deserialize_string_as")]
+	#[serde(with = "crate::util::values_as_strings")]
 	membership_id: i64,
 }
 
