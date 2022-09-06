@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/tauri';
-import { error } from './plugins/Log';
+import React, { useEffect, useState } from 'react';
+import { error, info } from './plugins/Log';
 
 export const getToken = async () => {
     try {
@@ -22,3 +23,25 @@ export const isTokenValid = async (): Promise<boolean> => await invoke('is_token
 export const canRefreshToken = async (): Promise<boolean> => await invoke('is_token_refreshable');
 
 export const deleteToken = async (): Promise<boolean> => await invoke('delete_token');
+
+export const useToken = (): [boolean, React.Dispatch<React.SetStateAction<boolean>>] => {
+    const [loggedIn, setLoggedIn] = useState(false);
+    useEffect(() => {
+        const setLoginState = async () => {
+            const validToken = await isTokenValid();
+            if (!validToken) {
+                const isRefreshable = await canRefreshToken();
+                if (isRefreshable) {
+                    await refreshToken();
+                    setLoggedIn(true);
+                }
+            } else {
+                setLoggedIn(true);
+            }
+        };
+
+        setLoginState();
+    }, [loggedIn]);
+
+    return [loggedIn, setLoggedIn];
+}

@@ -10,6 +10,7 @@ use app::{
 	plugins::{fern::colors, LogLevel, LogTarget, LoggerBuilder, RotationStrategy, StoreBuilder},
 	LoadoutClient, Result,
 };
+use tauri::{Manager, CustomMenuItem, Submenu, Menu, MenuItem};
 use tokio::runtime::Builder as RtBuilder;
 
 static THREAD_ID: AtomicUsize = AtomicUsize::new(1);
@@ -49,18 +50,44 @@ fn main() -> Result<()> {
 		.rotation_strategy(RotationStrategy::KeepAll)
 		.build();
 
+	let menu = {
+		let quit = CustomMenuItem::new("quit", "Quit");
+		let close = CustomMenuItem::new("close", "Close");
+		let submenu = Submenu::new("File", Menu::new().add_item(quit).add_item(close));
+		Menu::new().add_native_item(MenuItem::Copy)
+		.add_item(CustomMenuItem::new("hide", "Hide")).add_submenu(submenu)
+	};
+
 	tauri::Builder::default()
 		.manage(LoadoutClient::new()?)
 		.plugin(store)
 		.plugin(log)
 		.invoke_handler(tauri::generate_handler![
 			app::fetch::get_bungie_applications,
+			app::fetch::get_current_user,
 			app::oauth::get_authorization_code,
 			app::oauth::is_token_valid,
 			app::oauth::refresh_token,
 			app::oauth::is_token_refreshable,
 			app::oauth::delete_token,
 		])
+		.setup(|app| {
+			let keys = app.windows().into_keys().collect::<Vec<_>>();
+			dbg!(keys);
+			Ok(())
+		})
+		.menu(menu)
+		.on_menu_event(|event| {
+			match event.menu_item_id() {
+				"quit" => {
+					std::process::exit(0);
+				}
+				"close" => {
+					event.window().close().unwrap();
+				}
+				_ => {}
+			}
+		})
 		.run(tauri::generate_context!())?;
 	Ok(())
 }

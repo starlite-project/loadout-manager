@@ -1,37 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css'
+import { User } from './components';
 import { LoginButton, LogoutButton } from './OauthButtons';
-import { canRefreshToken, isTokenValid, refreshToken } from './token';
+import { canRefreshToken, isTokenValid, refreshToken, useToken } from './token';
 
 export const App = () => {
-    // const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [loggedIn, setLoggedIn] = useToken();
 
-    // return (
-    //     <button onClick={async () => await getToken()}>Login</button>
-    // );
-    const [loggedIn, setLoggedIn] = useState(false);
-    useEffect(() => {
-        const setLoginState = async () => {
-            const validToken = await isTokenValid();
-            if (!validToken) {
-                const isRefreshable = await canRefreshToken();
-                if (isRefreshable) {
-                    await refreshToken();
-                    setLoggedIn(true);
-                }
-            } else {
-                setLoggedIn(true);
-            }
-        };
-
-        setLoginState();
-    }, [loggedIn]);
 
     return loggedIn ? (
         // <LogoutButton setLoggedIn={setLoggedIn} />
         <div>
             <LogoutButton setLoggedIn={setLoggedIn} />
+            <User />
         </div>
     ) : (
         <LoginButton setLoggedIn={setLoggedIn} />
