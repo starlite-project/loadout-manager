@@ -1,22 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import './App.css'
+import './App.css';
 import { DefaultMenu, User } from './components';
-import { LoginButton, LogoutButton } from './OauthButtons';
-import { canRefreshToken, isTokenValid, refreshToken, useToken } from './token';
+import { OAuthButton } from './components/OAuthButton';
 
-export const App = () => {
-    const [loggedIn, setLoggedIn] = useToken();
-
-
-    return loggedIn ? (
-        // <LogoutButton setLoggedIn={setLoggedIn} />
+export function App(): JSX.Element {
+    return (
         <div>
-            <LogoutButton setLoggedIn={setLoggedIn} />
-            <DefaultMenu />
+            <Routes>
+            </Routes>
         </div>
-    ) : (
-        <LoginButton setLoggedIn={setLoggedIn} />
     )
 }
 
