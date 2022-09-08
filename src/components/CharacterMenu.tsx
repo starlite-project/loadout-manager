@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Menu, MenuItem } from '@mui/material'
 
-export default function DefaultMenu() {
+export function DefaultMenu() {
     const [anchor, setAnchor] = useState<null | HTMLElement>(null);
     const open = Boolean(anchor);
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -18,3 +18,5 @@ export default function DefaultMenu() {
         </div>
     )
 }
+
+export default DefaultMenu;

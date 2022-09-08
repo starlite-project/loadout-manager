@@ -26,10 +26,13 @@ interface GeneralUser {
     locale: string;
 }
 
-export default function User() {
+export function User() {
     const [user, setUser] = useState<GeneralUser | null>(null);
     useEffect(() => {
-        getUser().then((response) => setUser(response.Response));
+        getUser().then((response) => {
+            console.log(response);
+            setUser(response.Response);
+        });
     }, []);
 
     return (
@@ -38,3 +41,5 @@ export default function User() {
         </div>
     )
 }
+
+export default User;

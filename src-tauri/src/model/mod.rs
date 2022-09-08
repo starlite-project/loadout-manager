@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 mod application;
+mod destiny;
 mod user;
+pub mod util;
 
 pub use self::{
 	application::{Application, ApplicationStatus},

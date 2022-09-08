@@ -14,7 +14,7 @@ mod routing;
 pub async fn get_bungie_applications(
 	http: tauri::State<'_, LoadoutClient>,
 ) -> Result<BungieResponse<Vec<Application>>> {
-	fetch(&*http, AppRoute::FirstParty).await
+	basic_fetch(&*http, AppRoute::FirstParty).await
 }
 
 #[tauri::command]
@@ -26,10 +26,10 @@ pub async fn get_current_user(
 
 	let membership_id = serde_json::from_value::<D2Token>(auth_data)?.membership_id;
 
-	fetch(&*http, UserRoute::GetBungieNetUserById(membership_id)).await
+	basic_fetch(&*http, UserRoute::GetBungieNetUserById(membership_id)).await
 }
 
-async fn fetch<T: Serialize + DeserializeOwned>(
+async fn basic_fetch<T: Serialize + DeserializeOwned>(
 	client: &LoadoutClient,
 	route: impl IntoRequest,
 ) -> Result<BungieResponse<T>> {
@@ -43,7 +43,7 @@ async fn fetch<T: Serialize + DeserializeOwned>(
 }
 
 #[allow(dead_code)]
-async fn auth_fetch<T: Serialize + DeserializeOwned>(
+async fn basic_auth_fetch<T: Serialize + DeserializeOwned>(
 	client: &LoadoutClient,
 	storage: &Store,
 	route: impl IntoRequest,
