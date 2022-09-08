@@ -14,7 +14,24 @@ export function DefaultMenu() {
 
     return (
         <div>
-            
+            <Button
+                id="basic-button"
+                aria-controls={open ? 'basic-menu' : undefined}
+                aria-haspopup="true"
+                onClick={handleClick}
+            >Switch Characters
+            </Button>
+            <Menu
+                id="basic-menu"
+                anchorEl={anchor}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                    'aria-labelledby': 'basic-button',
+                }}
+            >
+                <MenuItem onClick={handleClose}>Profile</MenuItem>
+            </Menu>
         </div>
     )
 }

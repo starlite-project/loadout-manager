@@ -6,7 +6,7 @@ use tauri::api::{self, http::HttpRequestBuilder};
 use url::Url;
 
 use crate::{
-	model::util::{DestinyComponentType, BungieMembershipType},
+	model::util::{BungieMembershipType, DestinyComponentType},
 	util::{API_BASE, API_KEY},
 };
 
@@ -22,10 +22,12 @@ impl Display for AppRoute {
 		match self {
 			Self::ApiUsage(app_id) => {
 				f.write_str("/ApiUsage/")?;
-				f.write_str(&app_id)
+				f.write_str(&app_id)?;
 			}
-			Self::FirstParty => f.write_str("/FirstParty"),
+			Self::FirstParty => f.write_str("/FirstParty")?,
 		}
+
+		f.write_char('/')
 	}
 }
 
@@ -58,35 +60,39 @@ impl Display for UserRoute {
 		match self {
 			Self::GetBungieNetUserById(id) => {
 				f.write_str("/GetBungieNetUserById/")?;
-				Display::fmt(id, f)
+				Display::fmt(id, f)?;
 			}
 			Self::GetSanitizedPlatformDisplayNames(id) => {
 				f.write_str("/GetSanitizedPlatformDisplayNames/")?;
-				Display::fmt(id, f)
+				Display::fmt(id, f)?;
 			}
 			Self::GetCredentialTypesForTargetAccount(id) => {
 				f.write_str("/GetCredentialTypesForTargetAccount/")?;
-				Display::fmt(id, f)
+				Display::fmt(id, f)?;
 			}
-			Self::GetAvailableThemes => f.write_str("/GetAvailableThemes"),
+			Self::GetAvailableThemes => f.write_str("/GetAvailableThemes/")?,
 			Self::GetMembershipDataById(id, kind) => {
 				f.write_str("/GetMembershipsById/")?;
 				Display::fmt(id, f)?;
 				f.write_char('/')?;
-				Display::fmt(kind, f)
+				Display::fmt(kind, f)?;
 			}
-			Self::GetMembershipDataForCurrentUser => f.write_str("/GetMembershipsForCurrentUser"),
+			Self::GetMembershipDataForCurrentUser => {
+				f.write_str("/GetMembershipsForCurrentUser/")?
+			}
 			Self::GetMembershipFromHardLinkedCredential(cr_type, cred) => {
 				f.write_str("/GetMembershipFromHardLinkedCredential/")?;
 				Display::fmt(cr_type, f)?;
 				f.write_char('/')?;
-				f.write_str(cred)
+				f.write_str(cred)?;
 			}
 			Self::SearchByGlobalNamePost(page) => {
 				f.write_str("/Search/GlobalName/")?;
-				Display::fmt(page, f)
+				Display::fmt(page, f)?;
 			}
-		}
+		};
+
+		f.write_char('/')
 	}
 }
 
@@ -124,27 +130,25 @@ impl Display for Destiny2Route {
 		f.write_str("/Destiny2")?;
 
 		match self {
-			Self::GetDestinyManifest => f.write_str("/Manifest/"),
+			Self::GetDestinyManifest => f.write_str("/Manifest")?,
 			Self::GetDestinyEntityDefinition(entity_type, hash_identifier) => {
 				f.write_str("/Manifest/")?;
 				Display::fmt(entity_type, f)?;
 				f.write_char('/')?;
 				Display::fmt(hash_identifier, f)?;
-				f.write_char('/')
 			}
 			Self::GetLinkedProfiles(membership_id, membership_type, _) => {
 				f.write_char('/')?;
 				Display::fmt(membership_type, f)?;
 				f.write_str("/Profile/")?;
 				Display::fmt(membership_id, f)?;
-				f.write_str("/LinkedProfiles/")
+				f.write_str("/LinkedProfiles")?;
 			}
 			Self::GetProfile(membership_id, membership_type, _) => {
 				f.write_char('/')?;
 				Display::fmt(membership_type, f)?;
 				f.write_str("/Profile/")?;
 				Display::fmt(membership_id, f)?;
-				f.write_char('/')
 			}
 			Self::GetCharacter(character_id, destiny_membership_id, membership_type, _) => {
 				f.write_char('/')?;
@@ -153,7 +157,6 @@ impl Display for Destiny2Route {
 				Display::fmt(destiny_membership_id, f)?;
 				f.write_str("/Character/")?;
 				Display::fmt(character_id, f)?;
-				f.write_char('/')
 			}
 			Self::GetItem(destiny_membership_id, item_instance_id, membership_type, _) => {
 				f.write_char('/')?;
@@ -162,14 +165,15 @@ impl Display for Destiny2Route {
 				Display::fmt(destiny_membership_id, f)?;
 				f.write_str("/Item/")?;
 				Display::fmt(item_instance_id, f)?;
-				f.write_char('/')
 			}
-			Self::TransferItem => f.write_str("/Actions/Items/TransferItem/"),
-			Self::PullFromPostmaster => f.write_str("/Actions/Items/PullFromPostmaster/"),
-			Self::EquipItem => f.write_str("/Actions/Items/EquipItem/"),
-			Self::EquipItems => f.write_str("/Actions/Items/EquipItems/"),
-			Self::SetItemLockState => f.write_str("/Actions/Items/SetLockState/"),
+			Self::TransferItem => f.write_str("/Actions/Items/TransferItem")?,
+			Self::PullFromPostmaster => f.write_str("/Actions/Items/PullFromPostmaster")?,
+			Self::EquipItem => f.write_str("/Actions/Items/EquipItem")?,
+			Self::EquipItems => f.write_str("/Actions/Items/EquipItems")?,
+			Self::SetItemLockState => f.write_str("/Actions/Items/SetLockState")?,
 		}
+
+		f.write_char('/')
 	}
 }
 
