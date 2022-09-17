@@ -21,6 +21,7 @@ use tokio_tungstenite::{
 		Message,
 	},
 };
+use url::Url;
 
 use crate::{
 	plugins::Store,
@@ -44,9 +45,18 @@ pub async fn get_authorization_code(
 		.set_pkce_challenge(pkce_challenge)
 		.url();
 
-	let location = "wss://".to_owned() + REDIRECT_SERVER + "/socket";
+	// let location = "wss://".to_owned() + REDIRECT_SERVER + "/socket";
 
-	let mut ws = connect_async(location).await?.0;
+	// dbg!(&REDIRECT_SERVER);
+
+	let mut location = Url::parse(REDIRECT_SERVER)?;
+
+	if location.domain().is_none() {
+		// we know it's internal (aka 192.168.x.x)
+		let _ = location.set_port(Some(3030));
+	}
+
+	let mut ws = connect_async(dbg!(location)).await?.0;
 
 	let data_to_send = serde_json::json!({
 		"api_key": API_KEY.to_owned(),
@@ -68,7 +78,7 @@ pub async fn get_authorization_code(
 		}
 
 		if !c.is_text() {
-			panic!("invalid message received");
+			panic!("invalid message received: {:?}", c);
 		}
 
 		raw_code.push_str(&c.to_text()?);
@@ -133,11 +143,31 @@ pub async fn logged_in(
 	if let Some(json_data) = auth_data {
 		let json = serde_json::from_value::<D2Token>(json_data)?;
 
-		if json.is_valid() {
-			return Ok(true);
-		}
+		// if json.is_valid() {
+		// 	return Ok(true);
+		// }
 
-		if json.is_refreshable() {
+		// if json.is_refreshable() {
+		// 	let refresh_token = RefreshToken::new(json.refresh_token);
+
+		// 	let new_auth_data = http
+		// 		.oauth()
+		// 		.exchange_refresh_token(&refresh_token)
+		// 		.request_async(|req| http.make_oauth_request(req))
+		// 		.await?;
+
+		// 	let new_token = D2Token::try_from(new_auth_data)?;
+
+		// 	storage
+		// 		.insert("auth_data".to_owned(), serde_json::to_value(new_token)?)
+		// 		.await;
+
+		// 	return Ok(true);
+		// }
+
+		if json.is_valid() {
+			Ok(true)
+		} else if json.is_refreshable() {
 			let refresh_token = RefreshToken::new(json.refresh_token);
 
 			let new_auth_data = http
@@ -151,11 +181,10 @@ pub async fn logged_in(
 			storage
 				.insert("auth_data".to_owned(), serde_json::to_value(new_token)?)
 				.await;
-
-			return Ok(true);
+			Ok(true)
+		} else {
+			Ok(false)
 		}
-
-		Ok(false)
 	} else {
 		Ok(false)
 	}

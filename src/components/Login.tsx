@@ -5,7 +5,7 @@ export function Login() {
     return (
         <button onClick={async () => {
             try {
-                await invoke('refresh_token');
+                await invoke('get_authorization_code');
             } catch (e) {
                 await error(e as string);
             }

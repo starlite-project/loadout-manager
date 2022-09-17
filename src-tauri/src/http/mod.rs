@@ -91,7 +91,7 @@ impl LoadoutClient {
 		Ok(oauth2::HttpResponse {
 			status_code: status,
 			headers,
-			body: bytes.to_vec()
+			body: bytes.to_vec(),
 		})
 	}
 }
