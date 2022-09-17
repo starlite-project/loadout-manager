@@ -4,15 +4,17 @@ use std::{
 };
 
 pub mod fetch;
-mod http;
+pub mod http;
 pub mod model;
-pub mod oauth;
 pub mod plugins;
 pub mod util;
 
 use serde::{Serialize, Serializer};
 
-pub use self::http::LoadoutClient;
+pub use self::http::{
+	oauth::{D2ExtraFields, D2OAuthClient},
+	LoadoutClient,
+};
 
 #[derive(Debug)]
 #[repr(transparent)]

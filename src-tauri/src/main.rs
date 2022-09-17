@@ -6,7 +6,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use app::{
-	oauth::D2Token,
+	http::oauth::D2Token,
 	plugins::{fern::colors, LogLevel, LogTarget, LoggerBuilder, RotationStrategy, StoreBuilder},
 	LoadoutClient, Result,
 };
@@ -56,11 +56,12 @@ fn main() -> Result<()> {
 		.invoke_handler(tauri::generate_handler![
 			app::fetch::get_bungie_applications,
 			app::fetch::get_current_user,
-			app::oauth::get_authorization_code,
-			app::oauth::is_token_valid,
-			app::oauth::refresh_token,
-			app::oauth::is_token_refreshable,
-			app::oauth::delete_token,
+			app::http::oauth::get_authorization_code,
+			app::http::oauth::is_token_valid,
+			app::http::oauth::refresh_token,
+			app::http::oauth::is_token_refreshable,
+			app::http::oauth::delete_token,
+			app::http::oauth::logged_in,
 		])
 		.run(tauri::generate_context!())?;
 	Ok(())

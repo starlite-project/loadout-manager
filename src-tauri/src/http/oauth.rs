@@ -13,10 +13,7 @@ use oauth2::{
 	PkceCodeChallenge, RefreshToken, StandardRevocableToken, StandardTokenResponse, TokenResponse,
 };
 use serde::{Deserialize, Serialize};
-use tauri::{
-	api::http::{Body, HttpRequestBuilder, ResponseType},
-	Manager,
-};
+use tauri::Manager;
 use tokio_tungstenite::{
 	connect_async,
 	tungstenite::{
@@ -25,8 +22,13 @@ use tokio_tungstenite::{
 	},
 };
 
-use super::{plugins::Store, util::API_KEY, Result};
-use crate::{util::Impossible, LoadoutClient};
+use crate::{
+	plugins::Store,
+	util::{Impossible, API_KEY},
+	LoadoutClient, Result,
+};
+
+const REDIRECT_SERVER: &str = env!("SERVER_LOCATION");
 
 #[tauri::command]
 pub async fn get_authorization_code(
@@ -37,11 +39,14 @@ pub async fn get_authorization_code(
 	let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
 
 	let (auth_url, csrf_token) = http
+		.oauth()
 		.authorize_url(CsrfToken::new_random)
 		.set_pkce_challenge(pkce_challenge)
 		.url();
 
-	let mut ws = connect_async("wss://localhost:3030/socket").await?.0;
+	let location = "wss://".to_owned() + REDIRECT_SERVER + "/socket";
+
+	let mut ws = connect_async(location).await?.0;
 
 	let data_to_send = serde_json::json!({
 		"api_key": API_KEY.to_owned(),
@@ -101,12 +106,12 @@ pub async fn get_authorization_code(
 		return Ok(());
 	}
 
-	let client = &*http;
-
 	let token_result = http
+		.oauth()
 		.exchange_code(AuthorizationCode::new(code.to_owned()))
 		.set_pkce_verifier(pkce_verifier)
-		.request_async(move |req| make_request(client, req))
+		// .request_async(move |req| make_request(client, req))
+		.request_async(|req| http.make_oauth_request(req))
 		.await?;
 
 	let d2_token = D2Token::try_from(token_result)?;
@@ -116,6 +121,44 @@ pub async fn get_authorization_code(
 		.await;
 
 	Ok(())
+}
+
+#[tauri::command]
+pub async fn logged_in(
+	http: tauri::State<'_, LoadoutClient>,
+	storage: tauri::State<'_, Store>,
+) -> Result<bool> {
+	let auth_data = storage.get("auth_data").await;
+
+	if let Some(json_data) = auth_data {
+		let json = serde_json::from_value::<D2Token>(json_data)?;
+
+		if json.is_valid() {
+			return Ok(true);
+		}
+
+		if json.is_refreshable() {
+			let refresh_token = RefreshToken::new(json.refresh_token);
+
+			let new_auth_data = http
+				.oauth()
+				.exchange_refresh_token(&refresh_token)
+				.request_async(|req| http.make_oauth_request(req))
+				.await?;
+
+			let new_token = D2Token::try_from(new_auth_data)?;
+
+			storage
+				.insert("auth_data".to_owned(), serde_json::to_value(new_token)?)
+				.await;
+
+			return Ok(true);
+		}
+
+		Ok(false)
+	} else {
+		Ok(false)
+	}
 }
 
 #[tauri::command]
@@ -135,11 +178,10 @@ pub async fn refresh_token(
 
 	let refresh_token = RefreshToken::new(json.refresh_token);
 
-	let client = &*http;
-
 	let new_auth_data = http
+		.oauth()
 		.exchange_refresh_token(&refresh_token)
-		.request_async(|req| make_request(client, req))
+		.request_async(|req| http.make_oauth_request(req))
 		.await?;
 
 	let new_token = D2Token::try_from(new_auth_data)?;
@@ -185,37 +227,6 @@ pub async fn is_token_refreshable(
 	} else {
 		Ok(false)
 	}
-}
-
-// Doing this to use the same http client I use everywhere else, for consistency.
-async fn make_request(
-	client: &LoadoutClient,
-	req: oauth2::HttpRequest,
-) -> Result<oauth2::HttpResponse, oauth2::reqwest::Error<tauri::api::Error>> {
-	let builder = HttpRequestBuilder::new(req.method.to_string(), &req.url)
-		.map_err(oauth2::reqwest::Error::Reqwest)?
-		.headers(req.headers.clone())
-		.body(Body::Bytes(req.body.clone()))
-		.response_type(ResponseType::Binary);
-
-	let t_response = client
-		.send(builder)
-		.await
-		.map_err(oauth2::reqwest::Error::Reqwest)?;
-
-	let status = t_response.status();
-	let headers = t_response.headers().clone();
-
-	let body = t_response
-		.bytes()
-		.await
-		.map_err(oauth2::reqwest::Error::Reqwest)?;
-
-	Ok(oauth2::HttpResponse {
-		status_code: status,
-		headers,
-		body: body.data,
-	})
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

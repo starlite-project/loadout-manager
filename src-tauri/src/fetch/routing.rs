@@ -2,12 +2,8 @@
 
 use std::fmt::{Display, Formatter, Result as FmtResult, Write};
 
-use tauri::api::{self, http::HttpRequestBuilder};
-use url::Url;
-
 use crate::{
 	model::util::{BungieMembershipType, DestinyComponentType},
-	util::{API_BASE, API_KEY},
 };
 
 #[derive(Debug, Clone)]
@@ -32,8 +28,8 @@ impl Display for AppRoute {
 }
 
 impl IntoRequest for AppRoute {
-	fn method(&self) -> &'static str {
-		"GET"
+	fn method(&self) -> reqwest::Method {
+		reqwest::Method::GET
 	}
 
 	fn query(&self) -> Option<String> {
@@ -97,11 +93,11 @@ impl Display for UserRoute {
 }
 
 impl IntoRequest for UserRoute {
-	fn method(&self) -> &'static str {
+	fn method(&self) -> reqwest::Method {
 		if matches!(self, Self::SearchByGlobalNamePost(_)) {
-			"POST"
+			reqwest::Method::POST
 		} else {
-			"GET"
+			reqwest::Method::GET
 		}
 	}
 
@@ -178,19 +174,19 @@ impl Display for Destiny2Route {
 }
 
 impl IntoRequest for Destiny2Route {
-	fn method(&self) -> &'static str {
+	fn method(&self) -> reqwest::Method {
 		match self {
 			Self::GetDestinyManifest
 			| Self::GetDestinyEntityDefinition(..)
 			| Self::GetLinkedProfiles(..)
 			| Self::GetProfile(..)
 			| Self::GetCharacter(..)
-			| Self::GetItem(..) => "GET",
+			| Self::GetItem(..) => reqwest::Method::GET,
 			Self::TransferItem
 			| Self::PullFromPostmaster
 			| Self::EquipItem
 			| Self::EquipItems
-			| Self::SetItemLockState => "POST",
+			| Self::SetItemLockState => reqwest::Method::POST,
 		}
 	}
 
@@ -224,19 +220,19 @@ impl IntoRequest for Destiny2Route {
 }
 
 pub trait IntoRequest: Display {
-	fn method(&self) -> &'static str;
+	fn method(&self) -> reqwest::Method;
 
 	fn query(&self) -> Option<String>;
 
-	fn into_request(&self) -> api::Result<api::http::HttpRequestBuilder> {
-		let query = self.query();
+	// fn into_request(&self) -> api::Result<api::http::HttpRequestBuilder> {
+	// 	let query = self.query();
 
-		let mut uri = (API_BASE.to_owned() + &self.to_string()).parse::<Url>()?;
+	// 	let mut uri = (API_BASE.to_owned() + &self.to_string()).parse::<Url>()?;
 
-		uri.set_query(query.as_deref());
+	// 	uri.set_query(query.as_deref());
 
-		let method = self.method();
+	// 	let method = self.method();
 
-		HttpRequestBuilder::new(method, uri)?.header("X-API-Key", API_KEY)
-	}
+	// 	HttpRequestBuilder::new(method, uri)?.header("X-API-Key", API_KEY)
+	// }
 }

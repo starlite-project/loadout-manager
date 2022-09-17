@@ -12,12 +12,6 @@
 	},
 	"tauri": {
 		"allowlist": {
-			"http": {
-				"request": true,
-				"scope": [
-					"https://bungie.net/"
-				]
-			},
 			"shell": {
 				"open": true
 			}

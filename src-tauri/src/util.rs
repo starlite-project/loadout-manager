@@ -8,7 +8,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-pub const API_BASE: &str = "https://www.bungie.net/Platform";
+pub const API_BASE: &str = "https://www.bungie.net/";
 
 pub const API_KEY: &str = env!("API_KEY");
 
