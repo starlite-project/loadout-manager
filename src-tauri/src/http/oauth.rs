@@ -91,16 +91,12 @@ pub async fn get_authorization_code(
 		break;
 	}
 
-	let (code, oauth_state) = {
-		let raw_values = raw_code.split(':').collect::<Vec<_>>();
-		if raw_values.len() != 2 {
-			return Err(crate::Error(anyhow::anyhow!(
-				"didn't receive both code and state"
-			)));
-		}
+	let raw = serde_json::from_str::<MessageData>(&raw_code)?;
 
-		(raw_values[0], raw_values[1])
-	};
+	let MessageData {
+		code,
+		state: oauth_state,
+	} = raw;
 
 	log::debug!(
 		"received code {} with state {} from bungie",
@@ -120,7 +116,6 @@ pub async fn get_authorization_code(
 		.oauth()
 		.exchange_code(AuthorizationCode::new(code.to_owned()))
 		.set_pkce_verifier(pkce_verifier)
-		// .request_async(move |req| make_request(client, req))
 		.request_async(|req| http.make_oauth_request(req))
 		.await?;
 
@@ -142,28 +137,6 @@ pub async fn logged_in(
 
 	if let Some(json_data) = auth_data {
 		let json = serde_json::from_value::<D2Token>(json_data)?;
-
-		// if json.is_valid() {
-		// 	return Ok(true);
-		// }
-
-		// if json.is_refreshable() {
-		// 	let refresh_token = RefreshToken::new(json.refresh_token);
-
-		// 	let new_auth_data = http
-		// 		.oauth()
-		// 		.exchange_refresh_token(&refresh_token)
-		// 		.request_async(|req| http.make_oauth_request(req))
-		// 		.await?;
-
-		// 	let new_token = D2Token::try_from(new_auth_data)?;
-
-		// 	storage
-		// 		.insert("auth_data".to_owned(), serde_json::to_value(new_token)?)
-		// 		.await;
-
-		// 	return Ok(true);
-		// }
 
 		if json.is_valid() {
 			Ok(true)
@@ -388,3 +361,9 @@ pub struct D2ExtraFields {
 }
 
 impl ExtraTokenFields for D2ExtraFields {}
+
+#[derive(Debug, Deserialize)]
+struct MessageData {
+	code: String,
+	state: String,
+}
