@@ -1,18 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import './App.css';
-import { DefaultMenu, User, Login } from './components';
-import { isLoggedIn } from './utils/token';
+import { useEffect, useState } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import './App.module.scss';
+import { User, Login } from './components';
 
-export function App(): JSX.Element {
-    const needsLoggedIn = !isLoggedIn();
+export function App({ loggedIn = false }: Props): JSX.Element {
 
     return (
         <div>
             <Routes>
                 <Route path="login" element={<Login />} />
                 <Route path="user" element={<User />} />
-                {needsLoggedIn ? (
+                {!loggedIn ? (
                     <Route
                         path="*"
                         element={<Navigate to="/login" />}
@@ -27,6 +25,10 @@ export function App(): JSX.Element {
             </Routes>
         </div>
     )
+}
+
+interface Props {
+    loggedIn?: boolean;
 }
 
 export default App;

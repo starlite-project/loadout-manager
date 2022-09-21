@@ -23,11 +23,7 @@ use tokio_tungstenite::{
 };
 use url::Url;
 
-use crate::{
-	plugins::Store,
-	util::{Impossible, API_KEY},
-	LoadoutClient, Result,
-};
+use crate::{plugins::Store, util::API_KEY, LoadoutClient, Result};
 
 const REDIRECT_SERVER: &str = env!("SERVER_LOCATION");
 
@@ -45,15 +41,11 @@ pub async fn get_authorization_code(
 		.set_pkce_challenge(pkce_challenge)
 		.url();
 
-	// let location = "wss://".to_owned() + REDIRECT_SERVER + "/socket";
-
-	// dbg!(&REDIRECT_SERVER);
-
 	let mut location = Url::parse(REDIRECT_SERVER)?;
 
 	if location.domain().is_none() {
 		// we know it's internal (aka 192.168.x.x)
-		let _ = location.set_port(Some(3030));
+		_ = location.set_port(Some(3030));
 	}
 
 	let mut ws = connect_async(dbg!(location)).await?.0;
@@ -82,7 +74,7 @@ pub async fn get_authorization_code(
 		}
 
 		raw_code.push_str(&c.to_text()?);
-		let _ = ws
+		_ = ws
 			.close(Some(CloseFrame {
 				code: CloseCode::Normal,
 				reason: "received code".into(),
@@ -161,12 +153,6 @@ pub async fn logged_in(
 	} else {
 		Ok(false)
 	}
-}
-
-#[tauri::command]
-pub async fn delete_token(storage: tauri::State<'_, Store>) -> Result<bool, Impossible> {
-	let flag = storage.remove("auth_data").await.is_some();
-	Ok(flag)
 }
 
 #[tauri::command]
