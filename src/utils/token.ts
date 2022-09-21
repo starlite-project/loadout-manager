@@ -1,57 +1,65 @@
-import { error } from '../plugins/Log';
-import { invoke } from '@tauri-apps/api/tauri';
-import { useState, useEffect } from 'react';
+export interface Token {
+    value: string;
+    expires: number;
+    name: 'access' | 'refresh';
+    inception: number;
+}
 
-// export const useLoggedIn = (): boolean => {
-//     const [loggedIn, setLoggedIn] = useState(true);
-//     useEffect(() => {
-//         (async () => {
-//             if (!await isTokenValid()) {
-//                 if (await canRefreshToken()) {
-//                     await refreshToken();
-//                     setLoggedIn(true);
-//                 } else {
-//                     setLoggedIn(false);
-//                 }
-//             } else {
-//                 setLoggedIn(true);
-//             }
-//         })();
-//     }, [loggedIn]);
+export interface AuthTokens {
+    accessToken: Token;
+    refreshToken?: Token;
+    bungieMembershipId: string;
+}
 
-//     return loggedIn;
-// }
+const localStorageKey = 'authorization';
 
-export const isLoggedIn = async (): Promise<boolean> => {
-    if (!await isTokenValid()) {
-        if (await canRefreshToken()) {
-            return refreshToken().then((): boolean => true);
-        } else {
-            return false;
-        }
-    } else {
+export const getToken = (): AuthTokens | null => {
+    const tokenString = localStorage.getItem(localStorageKey);
+    return tokenString ? JSON.parse(tokenString) : null;
+}
+
+export const setToken = (token: AuthTokens): void => localStorage.setItem(localStorageKey, JSON.stringify(token));
+
+export const removeToken = (): void => localStorage.removeItem(localStorageKey);
+
+export const hasValidAuthTokens = (): boolean => {
+    const token = getToken();
+    if (!token) {
+        return false;
+    }
+
+    const refreshTokenIsValid = token && !hasTokenExpired(token.refreshToken);
+    if (!refreshTokenIsValid) {
+        return false;
+    }
+    return true;
+}
+
+export const removeAccessToken = (): void => {
+    const token = getToken();
+    if (token) {
+        token.accessToken.inception = 0;
+        token.accessToken.expires = 0;
+        setToken(token);
+    }
+}
+
+export const hasTokenExpired = (token?: Token): boolean => {
+    if (!token) {
         return true;
     }
+
+    const expires = getTokenExpiration(token);
+    const now = Date.now();
+
+    return now > expires;
 }
 
-export const refreshToken = async (): Promise<void> => {
-    try {
-        await invoke('refresh_token');
-    } catch (e) {
-        await error((e as Error).message);
+const getTokenExpiration = (token?: Token): number => {
+    if (token && Object.prototype.hasOwnProperty.call(token, 'inception') && Object.prototype.hasOwnProperty.call(token, 'expires')) {
+        const inception = token.inception;
+        return inception + token.expires * 1000;
     }
+
+    return 0
 }
-
-export const getToken = async (): Promise<void> => {
-    try {
-        await invoke('get_authorization_code');
-    } catch (e) {
-        await error((e as Error).message);
-    }
-}
-
-export const isTokenValid = async (): Promise<boolean> => await invoke('is_token_valid');
-
-export const canRefreshToken = async (): Promise<boolean> => await invoke('is_token_refreshable');
-
-export const deleteToken = async (): Promise<boolean> => await invoke('plugin:storage|delete', { key: 'auth_data' });

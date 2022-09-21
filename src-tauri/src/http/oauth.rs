@@ -12,7 +12,7 @@ use oauth2::{
 	AccessToken, AuthorizationCode, Client as OAuth2Client, CsrfToken, ExtraTokenFields,
 	PkceCodeChallenge, RefreshToken, StandardRevocableToken, StandardTokenResponse, TokenResponse,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::Visitor};
 use tauri::Manager;
 use tokio_tungstenite::{
 	connect_async,
@@ -23,15 +23,14 @@ use tokio_tungstenite::{
 };
 use url::Url;
 
-use crate::{plugins::Store, util::API_KEY, LoadoutClient, Result};
+use crate::{util::API_KEY, LoadoutClient, Result};
 
 const REDIRECT_SERVER: &str = env!("SERVER_LOCATION");
 
 #[tauri::command]
 pub async fn get_authorization_code(
 	app_handle: tauri::AppHandle,
-	http: tauri::State<'_, LoadoutClient>,
-	storage: tauri::State<'_, Store>,
+	http: tauri::State<'_, LoadoutClient>
 ) -> Result<()> {
 	let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
 
@@ -111,212 +110,141 @@ pub async fn get_authorization_code(
 		.request_async(|req| http.make_oauth_request(req))
 		.await?;
 
-	let d2_token = D2Token::try_from(token_result)?;
+	// let d2_token = D2Token::try_from(token_result)?;
 
-	storage
-		.insert("auth_data".to_owned(), serde_json::to_value(&d2_token)?)
-		.await;
+	// storage
+	// 	.insert("auth_data".to_owned(), serde_json::to_value(&d2_token)?)
+	// 	.await;
 
-	Ok(())
+	todo!()
 }
 
-#[tauri::command]
-pub async fn logged_in(
-	http: tauri::State<'_, LoadoutClient>,
-	storage: tauri::State<'_, Store>,
-) -> Result<bool> {
-	let auth_data = storage.get("auth_data").await;
+// #[tauri::command]
+// pub async fn refresh_token(
+// 	http: tauri::State<'_, LoadoutClient>,
+// 	token: &str
+// ) -> Result<()> {
+// 	let old_auth_data = storage.get("auth_data").await.expect("no auth data found");
 
-	if let Some(json_data) = auth_data {
-		let json = serde_json::from_value::<D2Token>(json_data)?;
+// 	let json = serde_json::from_value::<D2Token>(old_auth_data).expect("invalid JSON");
 
-		if json.is_valid() {
-			Ok(true)
-		} else if json.is_refreshable() {
-			let refresh_token = RefreshToken::new(json.refresh_token);
+// 	let refresh_token = RefreshToken::new(json.refresh_token);
 
-			let new_auth_data = http
-				.oauth()
-				.exchange_refresh_token(&refresh_token)
-				.request_async(|req| http.make_oauth_request(req))
-				.await?;
+// 	let new_auth_data = http
+// 		.oauth()
+// 		.exchange_refresh_token(&refresh_token)
+// 		.request_async(|req| http.make_oauth_request(req))
+// 		.await?;
 
-			let new_token = D2Token::try_from(new_auth_data)?;
+// 	let new_token = D2Token::try_from(new_auth_data)?;
 
-			storage
-				.insert("auth_data".to_owned(), serde_json::to_value(new_token)?)
-				.await;
-			Ok(true)
-		} else {
-			Ok(false)
-		}
-	} else {
-		Ok(false)
-	}
-}
+// 	storage
+// 		.insert("auth_data".to_owned(), serde_json::to_value(&new_token)?)
+// 		.await;
 
-#[tauri::command]
-pub async fn refresh_token(
-	http: tauri::State<'_, LoadoutClient>,
-	storage: tauri::State<'_, Store>,
-) -> Result<()> {
-	let old_auth_data = storage.get("auth_data").await.expect("no auth data found");
+// 	Ok(())
+// }
 
-	let json = serde_json::from_value::<D2Token>(old_auth_data).expect("invalid JSON");
+// #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+// #[serde(rename_all = "camelCase")]
+// pub struct D2Token {
+// 	pub access_token: String,
+// 	pub expires_in: SystemTime,
+// 	pub refresh_token: String,
+// 	pub refresh_expires_in: SystemTime,
+// 	pub membership_id: i64,
+// 	received: SystemTime,
+// }
 
-	let refresh_token = RefreshToken::new(json.refresh_token);
+// impl D2Token {
+// 	pub fn is_valid(&self) -> bool {
+// 		self.expires_in > SystemTime::now()
+// 	}
 
-	let new_auth_data = http
-		.oauth()
-		.exchange_refresh_token(&refresh_token)
-		.request_async(|req| http.make_oauth_request(req))
-		.await?;
+// 	pub fn is_refreshable(&self) -> bool {
+// 		self.refresh_expires_in > SystemTime::now()
+// 	}
+// }
 
-	let new_token = D2Token::try_from(new_auth_data)?;
+// impl Default for D2Token {
+// 	fn default() -> Self {
+// 		let now = SystemTime::UNIX_EPOCH;
+// 		Self {
+// 			access_token: String::new(),
+// 			expires_in: now,
+// 			refresh_token: String::new(),
+// 			refresh_expires_in: now,
+// 			membership_id: 0,
+// 			received: now,
+// 		}
+// 	}
+// }
 
-	storage
-		.insert("auth_data".to_owned(), serde_json::to_value(&new_token)?)
-		.await;
+// impl TryFrom<D2Token> for StandardTokenResponse<D2ExtraFields, BasicTokenType> {
+// 	type Error = ConversionError;
 
-	Ok(())
-}
+// 	fn try_from(old: D2Token) -> Result<Self, Self::Error> {
+// 		let time_since_expires = old
+// 			.expires_in
+// 			.duration_since(old.received)
+// 			.map_err(|_| ConversionError)?;
+// 		let time_since_refresh_expires = old
+// 			.refresh_expires_in
+// 			.duration_since(old.received)
+// 			.map_err(|_| ConversionError)?;
+// 		let mut new = Self::new(
+// 			AccessToken::new(old.access_token),
+// 			BasicTokenType::Bearer,
+// 			D2ExtraFields {
+// 				refresh_expires_in: Some(time_since_refresh_expires.as_secs()),
+// 				membership_id: old.membership_id,
+// 			},
+// 		);
 
-#[tauri::command]
-pub async fn is_token_valid(
-	storage: tauri::State<'_, Store>,
-) -> Result<bool, crate::util::Impossible> {
-	let auth_data_nullable = storage.get("auth_data").await;
+// 		new.set_refresh_token(Some(RefreshToken::new(old.refresh_token)));
 
-	if let Some(auth) = auth_data_nullable {
-		let token = match serde_json::from_value::<D2Token>(auth) {
-			Ok(v) => v,
-			Err(_) => return Ok(false),
-		};
+// 		new.set_expires_in(Some(&time_since_expires));
 
-		Ok(token.is_valid())
-	} else {
-		Ok(false)
-	}
-}
+// 		Ok(new)
+// 	}
+// }
 
-#[tauri::command]
-pub async fn is_token_refreshable(
-	storage: tauri::State<'_, Store>,
-) -> Result<bool, crate::util::Impossible> {
-	let auth_data_nullable = storage.get("auth_data").await;
+// impl TryFrom<StandardTokenResponse<D2ExtraFields, BasicTokenType>> for D2Token {
+// 	type Error = ConversionError;
 
-	if let Some(auth) = auth_data_nullable {
-		let token = match serde_json::from_value::<D2Token>(auth) {
-			Ok(v) => v,
-			Err(_) => return Ok(false),
-		};
+// 	fn try_from(
+// 		value: StandardTokenResponse<D2ExtraFields, BasicTokenType>,
+// 	) -> Result<Self, Self::Error> {
+// 		let now = SystemTime::now();
 
-		Ok(token.is_refreshable())
-	} else {
-		Ok(false)
-	}
-}
+// 		let access_token = value.access_token().secret().clone();
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct D2Token {
-	pub access_token: String,
-	pub expires_in: SystemTime,
-	pub refresh_token: String,
-	pub refresh_expires_in: SystemTime,
-	pub membership_id: i64,
-	received: SystemTime,
-}
+// 		let expires_in = now + value.expires_in().ok_or(ConversionError)?;
 
-impl D2Token {
-	pub fn is_valid(&self) -> bool {
-		self.expires_in > SystemTime::now()
-	}
+// 		let refresh_token = value
+// 			.refresh_token()
+// 			.map(|x| x.secret().clone())
+// 			.ok_or(ConversionError)?;
 
-	pub fn is_refreshable(&self) -> bool {
-		self.refresh_expires_in > SystemTime::now()
-	}
-}
+// 		let refresh_expires_in = now
+// 			+ value
+// 				.extra_fields()
+// 				.refresh_expires_in
+// 				.map(Duration::from_secs)
+// 				.ok_or(ConversionError)?;
 
-impl Default for D2Token {
-	fn default() -> Self {
-		let now = SystemTime::UNIX_EPOCH;
-		Self {
-			access_token: String::new(),
-			expires_in: now,
-			refresh_token: String::new(),
-			refresh_expires_in: now,
-			membership_id: 0,
-			received: now,
-		}
-	}
-}
+// 		let membership_id = value.extra_fields().membership_id.clone();
 
-impl TryFrom<D2Token> for StandardTokenResponse<D2ExtraFields, BasicTokenType> {
-	type Error = ConversionError;
-
-	fn try_from(old: D2Token) -> Result<Self, Self::Error> {
-		let time_since_expires = old
-			.expires_in
-			.duration_since(old.received)
-			.map_err(|_| ConversionError)?;
-		let time_since_refresh_expires = old
-			.refresh_expires_in
-			.duration_since(old.received)
-			.map_err(|_| ConversionError)?;
-		let mut new = Self::new(
-			AccessToken::new(old.access_token),
-			BasicTokenType::Bearer,
-			D2ExtraFields {
-				refresh_expires_in: Some(time_since_refresh_expires.as_secs()),
-				membership_id: old.membership_id,
-			},
-		);
-
-		new.set_refresh_token(Some(RefreshToken::new(old.refresh_token)));
-
-		new.set_expires_in(Some(&time_since_expires));
-
-		Ok(new)
-	}
-}
-
-impl TryFrom<StandardTokenResponse<D2ExtraFields, BasicTokenType>> for D2Token {
-	type Error = ConversionError;
-
-	fn try_from(
-		value: StandardTokenResponse<D2ExtraFields, BasicTokenType>,
-	) -> Result<Self, Self::Error> {
-		let now = SystemTime::now();
-
-		let access_token = value.access_token().secret().clone();
-
-		let expires_in = now + value.expires_in().ok_or(ConversionError)?;
-
-		let refresh_token = value
-			.refresh_token()
-			.map(|x| x.secret().clone())
-			.ok_or(ConversionError)?;
-
-		let refresh_expires_in = now
-			+ value
-				.extra_fields()
-				.refresh_expires_in
-				.map(Duration::from_secs)
-				.ok_or(ConversionError)?;
-
-		let membership_id = value.extra_fields().membership_id.clone();
-
-		Ok(D2Token {
-			access_token,
-			expires_in,
-			refresh_token,
-			refresh_expires_in,
-			membership_id,
-			received: now,
-		})
-	}
-}
+// 		Ok(D2Token {
+// 			access_token,
+// 			expires_in,
+// 			refresh_token,
+// 			refresh_expires_in,
+// 			membership_id,
+// 			received: now,
+// 		})
+// 	}
+// }
 
 #[derive(Debug)]
 pub struct ConversionError;

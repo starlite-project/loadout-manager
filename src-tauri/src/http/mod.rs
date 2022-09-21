@@ -13,6 +13,7 @@ use crate::{
 };
 
 pub mod oauth;
+pub mod token;
 
 #[derive(Debug, Clone)]
 pub struct LoadoutClient {

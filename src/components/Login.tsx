@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/tauri';
 import { error } from '../plugins/Log';
 import { useNavigate } from 'react-router-dom';
+import { token } from '../utils';
 
 export function Login() {
     const navigate = useNavigate();
@@ -8,7 +9,8 @@ export function Login() {
     return (
         <button onClick={async () => {
             try {
-                await invoke('get_authorization_code');
+                const authToken = await invoke('get_authorization_code') as token.AuthTokens;
+                token.setToken(authToken);
             } catch (e) {
                 await error(e as string);
             } finally {

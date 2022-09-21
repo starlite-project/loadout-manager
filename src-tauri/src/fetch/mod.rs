@@ -2,9 +2,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use self::routing::{AppRoute, UserRoute};
 use crate::{
-	http::oauth::D2Token,
 	model::{Application, BungieResponse, GeneralUser},
-	plugins::Store,
 	LoadoutClient, Result,
 };
 
@@ -15,7 +13,6 @@ pub use self::routing::IntoRequest;
 #[tauri::command]
 pub async fn get_bungie_applications(
 	http: tauri::State<'_, LoadoutClient>,
-	store: tauri::State<'_, Store>,
 ) -> Result<BungieResponse<Vec<Application>>> {
 	basic_fetch(&*http, &*store, AppRoute::FirstParty).await
 }
@@ -23,7 +20,6 @@ pub async fn get_bungie_applications(
 #[tauri::command]
 pub async fn get_current_user(
 	http: tauri::State<'_, LoadoutClient>,
-	store: tauri::State<'_, Store>,
 ) -> Result<BungieResponse<GeneralUser>> {
 	let auth_data = store.get("auth_data").await.expect("not logged in");
 
