@@ -23,6 +23,11 @@ export const accounts: Reducer<AccountsState, AccountsAction> = (
                 ...state,
                 needsLogin: true,
             };
+        case getType(actions.loggedIn):
+            return {
+                ...state,
+                needsLogin: false,
+            }
         default:
             return state
     }

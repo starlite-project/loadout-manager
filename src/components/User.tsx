@@ -7,7 +7,7 @@ export function User() {
     useEffect(() => {
         getUser().then((response) => {
             console.log(response);
-            setUser(response.Response);
+            setUser(response?.Response ?? null);
         });
     }, []);
 
