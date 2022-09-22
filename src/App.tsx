@@ -3,14 +3,13 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import './App.module.scss';
 import { User, Login } from './components';
 
-export function App({ loggedIn = false }: Props): JSX.Element {
-
+export function App(): JSX.Element {
     return (
         <div>
             <Routes>
                 <Route path="login" element={<Login />} />
                 <Route path="user" element={<User />} />
-                {!loggedIn ? (
+                {!false ? (
                     <Route
                         path="*"
                         element={<Navigate to="/login" />}
@@ -25,10 +24,6 @@ export function App({ loggedIn = false }: Props): JSX.Element {
             </Routes>
         </div>
     )
-}
-
-interface Props {
-    loggedIn?: boolean;
 }
 
 export default App;

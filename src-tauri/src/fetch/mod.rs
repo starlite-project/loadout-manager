@@ -13,21 +13,20 @@ pub use self::routing::IntoRequest;
 #[tauri::command]
 pub async fn get_bungie_applications(
 	http: tauri::State<'_, LoadoutClient>,
+	token: String,
 ) -> Result<BungieResponse<Vec<Application>>> {
-	basic_fetch(&*http, &*store, AppRoute::FirstParty).await
+	basic_fetch(&*http, token, AppRoute::FirstParty).await
 }
 
 #[tauri::command]
 pub async fn get_current_user(
 	http: tauri::State<'_, LoadoutClient>,
+	token: String,
+	membership_id: String,
 ) -> Result<BungieResponse<GeneralUser>> {
-	let auth_data = store.get("auth_data").await.expect("not logged in");
-
-	let membership_id = serde_json::from_value::<D2Token>(auth_data)?.membership_id;
-
 	basic_fetch(
 		&*http,
-		&*store,
+		token,
 		UserRoute::GetBungieNetUserById(membership_id),
 	)
 	.await
@@ -36,14 +35,9 @@ pub async fn get_current_user(
 #[allow(dead_code)]
 async fn basic_fetch<T: Serialize + DeserializeOwned>(
 	client: &LoadoutClient,
-	storage: &Store,
+	token: String,
 	route: impl IntoRequest,
 ) -> Result<BungieResponse<T>> {
-	let auth_data: D2Token =
-		serde_json::from_value(storage.get("auth_data").await.expect("auth data not saved"))?;
-
-	let token = auth_data.access_token;
-
 	let request = client.from_route(route, token)?;
 	// let raw = client.send(request_builder).await?.bytes().await?.data;
 

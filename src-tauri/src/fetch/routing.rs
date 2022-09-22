@@ -39,7 +39,7 @@ impl IntoRequest for AppRoute {
 
 #[derive(Debug, Clone)]
 pub enum UserRoute {
-	GetBungieNetUserById(i64),
+	GetBungieNetUserById(String),
 	GetSanitizedPlatformDisplayNames(i64),
 	GetCredentialTypesForTargetAccount(i64),
 	GetAvailableThemes,
@@ -56,7 +56,7 @@ impl Display for UserRoute {
 		match self {
 			Self::GetBungieNetUserById(id) => {
 				f.write_str("/GetBungieNetUserById/")?;
-				Display::fmt(id, f)?;
+				f.write_str(id)?;
 			}
 			Self::GetSanitizedPlatformDisplayNames(id) => {
 				f.write_str("/GetSanitizedPlatformDisplayNames/")?;

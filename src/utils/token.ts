@@ -2,7 +2,6 @@ export interface Token {
     value: string;
     expires: number;
     name: 'access' | 'refresh';
-    inception: number;
 }
 
 export interface AuthTokens {
@@ -38,9 +37,8 @@ export const hasValidAuthTokens = (): boolean => {
 export const removeAccessToken = (): void => {
     const token = getToken();
     if (token) {
-        token.accessToken.inception = 0;
         token.accessToken.expires = 0;
-        setToken(token);
+        setToken(token)
     }
 }
 
@@ -55,11 +53,4 @@ export const hasTokenExpired = (token?: Token): boolean => {
     return now > expires;
 }
 
-const getTokenExpiration = (token?: Token): number => {
-    if (token && Object.prototype.hasOwnProperty.call(token, 'inception') && Object.prototype.hasOwnProperty.call(token, 'expires')) {
-        const inception = token.inception;
-        return inception + token.expires * 1000;
-    }
-
-    return 0
-}
+const getTokenExpiration = (token?: Token): number => token?.expires ?? 0;
