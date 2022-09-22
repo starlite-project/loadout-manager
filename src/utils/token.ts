@@ -1,6 +1,6 @@
 export interface Token {
     value: string;
-    expires: number;
+    expires: string;
     name: 'access' | 'refresh';
 }
 
@@ -37,7 +37,7 @@ export const hasValidAuthTokens = (): boolean => {
 export const removeAccessToken = (): void => {
     const token = getToken();
     if (token) {
-        token.accessToken.expires = 0;
+        token.accessToken.expires = new Date(Date.now()).toISOString();
         setToken(token)
     }
 }
@@ -48,9 +48,9 @@ export const hasTokenExpired = (token?: Token): boolean => {
     }
 
     const expires = getTokenExpiration(token);
-    const now = Date.now();
+    const now = new Date(Date.now());
 
     return now > expires;
 }
 
-const getTokenExpiration = (token?: Token): number => token?.expires ?? 0;
+const getTokenExpiration = (token?: Token): Date => new Date(token?.expires ?? 0);

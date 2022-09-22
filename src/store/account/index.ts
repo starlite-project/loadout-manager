@@ -1,7 +1,7 @@
 import { ActionType, getType } from 'typesafe-actions';
 import { hasValidAuthTokens } from '../../utils/token';
 import * as actions from './actions';
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
 export interface AccountsState {
     readonly needsLogin: boolean;

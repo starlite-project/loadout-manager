@@ -29,5 +29,5 @@ target/
 # Local secrets
 *.pem
 *.pfx
-*/.env
+*/.env.*
 !*/.example.env

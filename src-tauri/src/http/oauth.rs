@@ -116,10 +116,10 @@ pub async fn get_authorization_code(
 #[tauri::command]
 pub async fn refresh_token(
 	http: tauri::State<'_, LoadoutClient>,
-	tokens: AuthTokens,
+	token: AuthTokens,
 ) -> Result<AuthTokens> {
 	let refresh_token = RefreshToken::new(
-		tokens
+		token
 			.refresh_token
 			.expect("no refresh token present")
 			.value()

@@ -1,6 +1,7 @@
-import { BungieResponse } from '.';
+import { BungieResponse, getActiveToken } from '.';
 import { invoke } from '@tauri-apps/api/tauri';
 import { TokenUtils } from '../utils';
+import { error } from '../plugins/Log';
 
 export interface GeneralUser {
     membershipId: string;
@@ -21,13 +22,18 @@ export interface GeneralUser {
 }
 
 export const getUser = async (): Promise<BungieResponse<GeneralUser> | null> => {
-    const token = TokenUtils.getToken();
+    const token = await getActiveToken();
 
     if (!token) {
         return null;
     }
 
-    const raw = await invoke('get_current_user', { token: token.accessToken.value, membershipId: token.bungieMembershipId });
+    let raw = null;
+    try {
+        raw = await invoke('get_current_user', { token })
+    } catch (e) {
+        await error((e as Error).message);
+    }
 
-    return raw as BungieResponse<GeneralUser>;
+    return raw as BungieResponse<GeneralUser> | null;
 }

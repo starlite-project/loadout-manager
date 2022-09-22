@@ -1,5 +1,5 @@
 import { removeToken } from "../../utils/token";
-import { ThunkResult } from "../types";
+import type { ThunkResult } from "../types";
 import * as actions from './actions';
 
 export const logOut = (): ThunkResult => {
