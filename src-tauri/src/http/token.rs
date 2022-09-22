@@ -9,7 +9,8 @@ use super::oauth::D2OAuthResponse;
 pub struct AuthTokens {
 	pub access_token: Token,
 	pub refresh_token: Option<Token>,
-	pub bungie_membership_id: String,
+	#[serde(with = "crate::util::values_as_strings")]
+	pub bungie_membership_id: i64,
 }
 
 impl AuthTokens {
@@ -44,7 +45,7 @@ impl AuthTokens {
 		Some(Self {
 			refresh_token,
 			access_token,
-			bungie_membership_id: response.extra_fields().membership_id().to_string(),
+			bungie_membership_id: response.extra_fields().membership_id(),
 		})
 	}
 }

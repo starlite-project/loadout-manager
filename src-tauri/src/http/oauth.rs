@@ -45,6 +45,8 @@ pub async fn get_authorization_code(
 		_ = location.set_port(Some(3030));
 	}
 
+	location.set_path("/socket");
+
 	let mut ws = connect_async(dbg!(location)).await?.0;
 
 	let data_to_send = serde_json::json!({
@@ -132,32 +134,6 @@ pub async fn refresh_token(
 
 	Ok(AuthTokens::from_oauth_response(new_auth_data).unwrap())
 }
-
-// #[tauri::command]
-// pub async fn refresh_token(
-// 	http: tauri::State<'_, LoadoutClient>,
-// 	token: &str
-// ) -> Result<()> {
-// 	let old_auth_data = storage.get("auth_data").await.expect("no auth data found");
-
-// 	let json = serde_json::from_value::<D2Token>(old_auth_data).expect("invalid JSON");
-
-// 	let refresh_token = RefreshToken::new(json.refresh_token);
-
-// 	let new_auth_data = http
-// 		.oauth()
-// 		.exchange_refresh_token(&refresh_token)
-// 		.request_async(|req| http.make_oauth_request(req))
-// 		.await?;
-
-// 	let new_token = D2Token::try_from(new_auth_data)?;
-
-// 	storage
-// 		.insert("auth_data".to_owned(), serde_json::to_value(&new_token)?)
-// 		.await;
-
-// 	Ok(())
-// }
 
 pub(super) type D2OAuthResponse = StandardTokenResponse<D2ExtraFields, BasicTokenType>;
 
