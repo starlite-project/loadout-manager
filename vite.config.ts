@@ -9,7 +9,7 @@ export default defineConfig({
 		preprocessorOptions: {
 			scss: {
 				additionalData: `@use "@/styles" as common;`,
-				importer(...args) {
+				importer(...args: string[]) {
 					if (args[0] !== '@/styles') {
 						return;
 					}
