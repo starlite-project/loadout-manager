@@ -6,20 +6,20 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
 	css: {
-		preprocessorOptions: {
-			scss: {
-				additionalData: `@use "@/styles" as common;`,
-				importer(...args: string[]) {
-					if (args[0] !== '@/styles') {
-						return;
-					}
+		// preprocessorOptions: {
+		// 	scss: {
+		// 		additionalData: `@use "@/styles" as common;`,
+		// 		importer(...args: string[]) {
+		// 			if (args[0] !== '@/styles') {
+		// 				return;
+		// 			}
 
-					return {
-						file: `${path.resolve(__dirname, './src/assets/styles')}`
-					}
-				}
-			}
-		}
+		// 			return {
+		// 				file: `${path.resolve(__dirname, './src/assets/styles')}`
+		// 			}
+		// 		}
+		// 	}
+		// }
 	},
 	clearScreen: false,
 	server: {

@@ -19,14 +19,14 @@ fn main() {
 
 	dotenv::from_path(full_path).ok();
 
-	let res = ["api_key", "client_id", "client_secret"]
+	let res = ["api_key", "client_id", "client_secret", "server_location"]
 		.into_iter()
 		.map(set_env_value)
 		.collect::<Result<(), env::VarError>>();
 
 	res.expect("failed to set a hardcoded value, maybe it's not set in the environment?");
 
-	set_env_or_default("server_location", "https://starlight-loadout-server.com");
+	// set_env_or_default("server_location", "https://starlight-loadout-server.com");
 
 	tauri_build::build();
 }
@@ -37,11 +37,4 @@ fn set_env_value(key: &str) -> Result<(), env::VarError> {
 
 	println!("cargo:rustc-env={}={}", key, value);
 	Ok(())
-}
-
-fn set_env_or_default(key: &str, default_value: &str) {
-	let key = key.to_ascii_uppercase();
-	// call to_owned here to avoid an allocation if possible
-	let value = env::var(key.as_str()).unwrap_or_else(|_| default_value.to_owned());
-	println!("cargo:rustc-env={}={}", key, value);
 }

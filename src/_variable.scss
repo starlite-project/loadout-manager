@@ -23,3 +23,9 @@ $equipped-item-total-outset: #{2 * ($equipped-item-border + $equipped-item-paddi
 
 $badge-font-size: '(var(--item-size) / 5)';
 $badge-height: '(#{$badge-font-size} + 4px)';
+
+@mixin destiny-header {
+    text-transform: uppercase;
+    font-weight: 600;
+    font-family: Helvetica, Arial, sans-serif;
+}

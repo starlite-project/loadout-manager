@@ -43,6 +43,9 @@ pub async fn get_authorization_code(
 	if location.domain().is_none() {
 		// we know it's internal (aka 192.168.x.x)
 		_ = location.set_port(Some(3030));
+		_ = location.set_scheme("ws");
+	} else {
+		_ = location.set_scheme("wss");
 	}
 
 	location.set_path("/socket");
