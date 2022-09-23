@@ -17,7 +17,7 @@ fn main() {
 		base_path.join(".env.development")
 	};
 
-	dotenv::from_path(full_path).expect("failed to read file");
+	dotenv::from_path(full_path).ok();
 
 	let res = ["api_key", "client_id", "client_secret"]
 		.into_iter()
