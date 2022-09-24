@@ -1,6 +1,5 @@
 import { BungieResponse, getActiveToken } from '.';
 import { invoke } from '@tauri-apps/api/tauri';
-import { TokenUtils } from '../utils';
 import { error } from '../plugins/Log';
 
 export interface GeneralUser {

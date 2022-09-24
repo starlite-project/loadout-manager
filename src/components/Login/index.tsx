@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/tauri';
 import { error } from '../../plugins/Log';
 import { useNavigate } from 'react-router-dom';
-import { TokenUtils } from '../../utils';
+import { AuthTokens, setToken } from '../../utils/token';
 import { useThunkDispatch } from '../../store/thunk';
 import { loggedIn } from '../../store/account/actions';
 import type { FC } from 'react';
@@ -13,8 +13,8 @@ export const Login: FC<{}> = () => {
 
     const onLoginClick = async (): Promise<void> => {
         try {
-            const authToken = await invoke('get_authorization_code') as TokenUtils.AuthTokens;
-            TokenUtils.setToken(authToken);
+            const authToken = await invoke('get_authorization_code') as AuthTokens;
+            setToken(authToken);
             dispatch(loggedIn());
         } catch (e) {
             await error(e as string);

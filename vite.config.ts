@@ -5,25 +5,12 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	css: {
-		// preprocessorOptions: {
-		// 	scss: {
-		// 		additionalData: `@use "@/styles" as common;`,
-		// 		importer(...args: string[]) {
-		// 			if (args[0] !== '@/styles') {
-		// 				return;
-		// 			}
-
-		// 			return {
-		// 				file: `${path.resolve(__dirname, './src/assets/styles')}`
-		// 			}
-		// 		}
-		// 	}
-		// }
-	},
 	clearScreen: false,
 	server: {
 		strictPort: true,
+	},
+	define: {
+		__LOADOUT_MANAGER_FLAVOR__: JSON.stringify(process.env.TAURI_DEBUG ? 'dev' : 'prod')
 	},
 	envPrefix: ['VITE_', 'TAURI_'],
 	build: {

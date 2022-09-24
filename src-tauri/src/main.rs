@@ -31,7 +31,11 @@ fn main() -> Result<()> {
 	tauri::async_runtime::set(runtime.handle().clone());
 
 	let log = LoggerBuilder::new()
-		.level(LogLevel::Trace)
+		.level(if cfg!(debug_assertions) {
+			LogLevel::Trace
+		} else {
+			LogLevel::Debug
+		})
 		.target(LogTarget::Webview)
 		.with_colors(colors::ColoredLevelConfig {
 			error: colors::Color::Red,

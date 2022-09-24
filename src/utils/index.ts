@@ -1,5 +1,3 @@
-export * as TokenUtils from './token';
-
 export const dedupPromise = <T extends unknown[], K>(
     func: (...args: T) => Promise<K>
 ): (...args: T) => Promise<K> => {
