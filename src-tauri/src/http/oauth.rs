@@ -11,6 +11,7 @@ use oauth2::{
 };
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
+use tokio::time::timeout;
 use tokio_tungstenite::{
 	connect_async,
 	tungstenite::{
@@ -38,19 +39,19 @@ pub async fn get_authorization_code(
 		.set_pkce_challenge(pkce_challenge)
 		.url();
 
+	dbg!(REDIRECT_SERVER);
+
 	let mut location = Url::parse(REDIRECT_SERVER)?;
 
 	if location.domain().is_none() {
 		// we know it's internal (aka 192.168.x.x)
 		_ = location.set_port(Some(3030));
-		_ = location.set_scheme("ws");
-	} else {
-		_ = location.set_scheme("wss");
 	}
 
-	location.set_path("/socket");
-
-	let mut ws = connect_async(dbg!(location)).await?.0;
+	// let mut ws = connect_async(dbg!(location)).await?.0;
+	let mut ws = timeout(Duration::from_secs(15), connect_async(location))
+		.await??
+		.0;
 
 	let data_to_send = serde_json::json!({
 		"api_key": API_KEY.to_owned(),

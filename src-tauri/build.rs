@@ -3,6 +3,10 @@ use std::{env, path::PathBuf};
 const CURRENT_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 fn main() {
+	println!("cargo:rerun-if-changed=build.rs");
+	println!("cargo:rerun-if-changed=.env.development");
+	println!("cargo:rerun-if-changed=.env.production");
+
 	let is_release = match env::var("PROFILE").unwrap().as_str() {
 		"debug" => false,
 		"release" => true,
@@ -25,8 +29,6 @@ fn main() {
 		.collect::<Result<(), env::VarError>>();
 
 	res.expect("failed to set a hardcoded value, maybe it's not set in the environment?");
-
-	// set_env_or_default("server_location", "https://starlight-loadout-server.com");
 
 	tauri_build::build();
 }

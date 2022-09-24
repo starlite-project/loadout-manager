@@ -9,6 +9,8 @@ use app::{
 	plugins::{fern::colors, LogLevel, LogTarget, LoggerBuilder, RotationStrategy},
 	LoadoutClient, Result,
 };
+#[cfg(debug_assertions)]
+use tauri::Manager;
 use tokio::runtime::Builder as RtBuilder;
 
 static THREAD_ID: AtomicUsize = AtomicUsize::new(1);
@@ -50,6 +52,20 @@ fn main() -> Result<()> {
 			app::http::oauth::get_authorization_code,
 			app::http::oauth::refresh_token,
 		])
+		.setup(|_app| {
+			#[cfg(debug_assertions)]
+			{
+				let window = _app.get_window("main").unwrap();
+				window.open_devtools();
+			}
+
+			log::info!(
+				"setting up application, server set to {}",
+				env!("SERVER_LOCATION")
+			);
+
+			Ok(())
+		})
 		.run(tauri::generate_context!())?;
 	Ok(())
 }
