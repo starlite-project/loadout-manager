@@ -1,5 +1,10 @@
 {
     "Loading": {
         "Code": "Loading code..."
+    },
+    "Views": {
+        "Login": {
+            "Auth": "Authorize with Bungie.net"
+        }
     }
 }

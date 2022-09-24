@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from './store/types';
 import { ErrorBoundary, ScrollToTop, ShowPageLoading } from './components/utility';
 import React, { Suspense } from 'react';
+import { t} from './utils';
 
 const User = React.lazy(() => import('./components/User'));
 
@@ -17,7 +18,7 @@ export function App(): JSX.Element {
             <ScrollToTop />
             <PageLoading />
             <ErrorBoundary name="Loadout Manager">
-                <Suspense fallback={<ShowPageLoading message='Loading' />}>
+                <Suspense fallback={<ShowPageLoading message={t('Loading.Code')} />}>
                     <Routes>
                         <Route path="login" element={<Login />} />
                         <Route path="user" element={<User />} />

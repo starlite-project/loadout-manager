@@ -6,6 +6,7 @@ import { useThunkDispatch } from '../../store/thunk';
 import { loggedIn } from '../../store/account/actions';
 import type { FC } from 'react';
 import styles from './Login.module.scss';
+import { t } from '../../utils';
 
 export const Login: FC<{}> = () => {
     const navigate = useNavigate();
@@ -25,7 +26,7 @@ export const Login: FC<{}> = () => {
 
     return (
         <div className={styles.billboard}>
-            <button onClick={onLoginClick}>Login</button>
+            <button onClick={onLoginClick}>{t('Views.Login.Auth')}</button>
         </div>
     )
 }

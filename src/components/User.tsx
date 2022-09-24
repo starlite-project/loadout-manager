@@ -1,14 +1,10 @@
-import { invoke } from '@tauri-apps/api/tauri';
-import { useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { GeneralUser, getUser } from '../models';
 
-export function User() {
+export const User: FC = () => {
     const [user, setUser] = useState<GeneralUser | null>(null);
-    useEffect(() => {
-        getUser().then((response) => {
-            console.log(response);
-            setUser(response?.Response ?? null);
-        });
+    useEffect((): void => {
+        getUser().then((response): void => setUser(response?.Response ?? null));
     }, []);
 
     return (

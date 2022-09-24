@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import en from '../locale/en.json';
-import HttpApi from 'i18next-http-backend';
+import resourcesToBackend from 'i18next-resources-to-backend';
 
 interface LangInfo {
     pluralOverride: boolean;
@@ -26,7 +26,14 @@ export function defaultLanguage(): string {
 export function initi18n(): Promise<unknown> {
     const lang = defaultLanguage();
     return new Promise((resolve, reject) => {
-        i18next.use(HttpApi).init({
+        i18next.use(resourcesToBackend((language, _namespace, callback) => {
+            import(`../locale/${language}.json`)
+                .then((resources) => {
+                    callback(null, resources);
+                }).catch((error) => {
+                    callback(error, null);
+                });
+        })).init({
             initImmediate: true,
             compatibilityJSON: 'v3',
             debug: __LOADOUT_MANAGER_FLAVOR__ == 'dev',
@@ -68,6 +75,7 @@ export function initi18n(): Promise<unknown> {
             returnObjects: true,
         }, (error) => {
             if (error) {
+                console.log(error);
                 reject(error)
             } else {
                 resolve(undefined)
