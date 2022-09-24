@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { AuthTokens, setToken } from '../../utils/token';
 import { useThunkDispatch } from '../../store/thunk';
 import { loggedIn } from '../../store/account/actions';
-import type { FC } from 'react';
+import type { FunctionComponent } from 'react';
 import styles from './Login.module.scss';
 import { t } from '../../utils';
 
-export const Login: FC<{}> = () => {
+export const Login: FunctionComponent = () => {
     const navigate = useNavigate();
     const dispatch = useThunkDispatch();
 

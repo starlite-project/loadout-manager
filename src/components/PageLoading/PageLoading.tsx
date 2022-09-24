@@ -1,4 +1,4 @@
-import { FC, ReactElement, useRef } from 'react';
+import { FunctionComponent, ReactElement, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/types';
 import styles from './PageLoading.module.scss';
@@ -17,7 +17,7 @@ const transitionClasses = {
     exitActive: styles.pageLoadingExitActive,
 } as const;
 
-export const PageLoading: FC<{}> = (): ReactElement => {
+export const PageLoading: FunctionComponent = (): ReactElement => {
     const message = useSelector(messageSelector);
     const nodeRef = useRef<HTMLDivElement>(null);
     return (
