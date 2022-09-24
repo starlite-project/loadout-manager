@@ -59,11 +59,6 @@ fn main() -> Result<()> {
 				window.open_devtools();
 			}
 
-			log::info!(
-				"setting up application, server set to {}",
-				env!("SERVER_LOCATION")
-			);
-
 			Ok(())
 		})
 		.run(tauri::generate_context!())?;
