@@ -7,12 +7,37 @@ import { loggedIn } from '../../store/account/actions';
 import type { FunctionComponent } from 'react';
 import styles from './Login.module.scss';
 import { t } from '../../utils';
+import type React from 'react';
+
+// export const Login: FunctionComponent = () => {
+//     const navigate = useNavigate();
+//     const dispatch = useThunkDispatch();
+
+//     const onLoginClick = async (): Promise<void> => {
+//         try {
+//             const authToken = await invoke('get_authorization_code') as AuthTokens;
+//             setToken(authToken);
+//             dispatch(loggedIn());
+//         } catch (e) {
+//             await error(e as string);
+//         } finally {
+//             navigate("/");
+//         }
+//     }
+
+//     return (
+//         <div className={styles.billboard}>
+//             <button onClick={onLoginClick}>{t('Views.Login.Auth')}</button>
+//         </div>
+//     )
+// }
 
 export const Login: FunctionComponent = () => {
     const navigate = useNavigate();
     const dispatch = useThunkDispatch();
 
-    const onLoginClick = async (): Promise<void> => {
+    const onLoginClick = async (e: React.MouseEvent) => {
+        e.preventDefault();
         try {
             const authToken = await invoke('get_authorization_code') as AuthTokens;
             setToken(authToken);
@@ -20,15 +45,18 @@ export const Login: FunctionComponent = () => {
         } catch (e) {
             await error(e as string);
         } finally {
-            navigate("/");
+            navigate('/');
         }
-    }
+    };
 
-    return (
-        <div className={styles.billboard}>
-            <button onClick={onLoginClick}>{t('Views.Login.Auth')}</button>
-        </div>
-    )
+    return <div className={styles.billboard}>
+        <a rel="noopener noreferrer"
+            onClick={onLoginClick}
+            className={styles.auth}
+        >
+            {t('Views.Login.Auth')}
+        </a>
+    </div>
 }
 
 export default Login;
