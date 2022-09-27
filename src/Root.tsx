@@ -2,19 +2,30 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { Provider } from 'react-redux';
 import store from './store';
+import { SWRConfig, SWRConfiguration } from 'swr';
+import { debug } from './plugins/Log';
+import { fetch } from "./models";
 
 export function Root(): JSX.Element {
-    return (
-        <BrowserRouter>
-            <Provider store={store}>
-                <App />
-            </Provider>
-        </BrowserRouter>
-    )
-}
+    const swrConfig: SWRConfiguration = {
+        fetcher: async (key) => {
+            await debug(`Making request to route ${key}`);
+            return fetch(key)
+        },
+        revalidateOnMount: false,
+        shouldRetryOnError: false,
+        suspense: true
+    }
 
-interface Props {
-    loggedIn?: boolean;
+    return (
+        <SWRConfig value={swrConfig}>
+            <BrowserRouter>
+                <Provider store={store}>
+                    <App />
+                </Provider>
+            </BrowserRouter>
+        </SWRConfig>
+    )
 }
 
 export default Root;

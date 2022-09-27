@@ -1,17 +1,28 @@
 import { invoke } from '@tauri-apps/api/tauri';
 import { error } from '../plugins/Log';
 import { AuthTokens, getToken, removeToken, hasTokenExpired, setToken } from '../utils/token';
+import type { GeneralUser } from './user';
+import type { Application } from './application';
 
 export * from './user';
+export * from './application';
 
-export interface BungieResponse<T> {
-    Response: T;
-    ErrorCode: number;
-    ThrottleSeconds: number;
-    ErrorStatus: string;
-    Message: string;
-    MessageData: Map<string, string>,
-    DetailedErrorTrace: string | null;
+export function fetch(key: 'get_bungie_applications'): Promise<Array<Application> | null>;
+export function fetch(key: 'get_current_user'): Promise<GeneralUser | null>;
+export async function fetch(key: string): Promise<unknown> {
+    const token = await getActiveToken();
+
+    if (!token) {
+        return null;
+    }
+
+    // return invoke(key, { token });
+    try {
+        return await invoke(key, { token });
+    } catch (e) {
+        await error(e as string);
+        throw e;
+    }
 }
 
 export const getActiveToken = async (): Promise<AuthTokens> => {
@@ -23,7 +34,6 @@ export const getActiveToken = async (): Promise<AuthTokens> => {
     }
 
     const accessTokenIsValid = token && !hasTokenExpired(token.accessToken);
-    console.log(accessTokenIsValid);
     if (accessTokenIsValid) {
         return token;
     }

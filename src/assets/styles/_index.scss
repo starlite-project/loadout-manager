@@ -1,0 +1,73 @@
+$arc: #85c5ec;
+$solar: #f2721b;
+$void: #814bcf;
+
+$common: #dcdcdc;
+$uncommon: #366e42;
+$rare: #5076a3;
+$legendary: #513065;
+$exotic: #c3a019;
+
+$xp: #5ea16a;
+$gold: #f5dc56;
+$power: $gold;
+
+$masterwork-border-color: #eade8b;
+$deepsight-border-color: #d25336;
+
+$item-border-width: 1px;
+
+$equipped-item-border: 1px;
+$equipped-item-padding: 2px;
+$equipped-item-total-outset: #{2 * ($equipped-item-border + $equipped-item-padding)};
+
+$badge-font-size: '(var(--item-size) / 5)';
+$badge-height: '(#{$badge-font-size} + 4px)';
+
+$purple: #843da4;
+$scarlet: #da004e;
+
+@mixin destiny-header {
+    text-transform: uppercase;
+    font-weight: 600;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.loadout-manager-button {
+    cursor: pointer;
+    padding: 4px 10px;
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 12px;
+    line-height: calc(16 / 12);
+    font-family: 'Open Sans', sans-serif, 'Destiny Symbols';
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+    border: 1px solid transparent;
+    transition: all 150ms ease-out;
+    box-sizing: border-box;
+    text-align: center;
+
+    img {
+        height: 1.3em;
+        width: auto;
+        vertical-align: bottom;
+        margin: 0 0.3em;
+        filter: drop-shadow(0 0 1px black);
+        transform: filter 150ms ease-out;
+    }
+
+    &:hover,
+    &:active,
+    &.selected {
+        background-color: $purple !important;
+        color: black !important;
+        img {
+            filter: invert(1) drop-shadow(0 0 1px black);
+        }
+    }
+
+    input {
+        display: none;
+    }
+}

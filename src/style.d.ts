@@ -1,5 +1,6 @@
 declare const classNames: {
-  readonly row: "row";
+  readonly "loadout-manager-button": "loadout-manager-button";
+  readonly selected: "selected";
 };
 export default classNames;
-export type ClassNames = "row";
+export type ClassNames = "loadout-manager-button" | "selected";

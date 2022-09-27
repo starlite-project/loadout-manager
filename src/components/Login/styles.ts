@@ -1,4 +1,7 @@
-.billboard {
+import styled from 'styled-components';
+import { CSSConstants, DestinyHeader, LoadoutManagerButton } from '../../main-styles';
+
+export const Billboard = styled.div`
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -15,23 +18,21 @@
     margin: auto;
 
     h1 {
-        @include common.destiny-header;
+        ${DestinyHeader}
         margin: 0;
         text-align: center;
     }
-}
+`;
 
-.auth {
-    composes: loadout-manager-button;
+export const AuthButton = styled(LoadoutManagerButton)`
     font-size: 1rem;
     font-weight: bold;
     text-align: center;
     padding: 1em 3em;
-    background-color: common.$purple;
+    background-color: ${CSSConstants.Purple};
     color: black;
     text-shadow: none;
-
     &:hover {
-        transform: scale(1.05);
+        transform: scale(1.05)
     }
-}
+`;

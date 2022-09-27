@@ -54,7 +54,7 @@ impl LoadoutClient {
 		&self,
 		route: impl IntoRequest,
 		token: String,
-	) -> Result<reqwest::RequestBuilder> {
+	) -> Result<reqwest::RequestBuilder, url::ParseError> {
 		let mut url: Url = API_BASE.parse()?;
 
 		let query = route.query();
