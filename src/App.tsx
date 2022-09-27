@@ -1,20 +1,23 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import './App.module.scss';
 import { Login, PageLoading } from './components';
 import { useSelector } from 'react-redux';
 import type { RootState } from './store/types';
 import { ErrorBoundary, ScrollToTop, ShowPageLoading } from './components/utility';
 import React, { Suspense } from 'react';
-import { t} from './utils';
+import { t } from './utils';
+import styled from 'styled-components';
 
 const User = React.lazy(() => import('./components/User'));
 
+const StyledApp = styled.div`
+    padding: 20px;
+`;
 
 export function App(): JSX.Element {
     const needsLogin = useSelector((state: RootState): boolean => state.accounts.needsLogin);
 
     return (
-        <div>
+        <StyledApp>
             <ScrollToTop />
             <PageLoading />
             <ErrorBoundary name="Loadout Manager">
@@ -37,7 +40,7 @@ export function App(): JSX.Element {
                     </Routes>
                 </Suspense>
             </ErrorBoundary>
-        </div>
+        </StyledApp>
     )
 }
 
