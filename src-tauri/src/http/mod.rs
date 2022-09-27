@@ -17,7 +17,7 @@ pub mod token;
 
 #[derive(Debug, Clone)]
 pub struct LoadoutClient {
-	request_client: Client,
+	pub request_client: Client,
 	oauth_client: D2OAuthClient,
 }
 

@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use futures_util::{SinkExt, StreamExt};
 use oauth2::{
 	basic::{
 		BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
@@ -11,18 +10,11 @@ use oauth2::{
 };
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
-use tokio::time::timeout;
-use tokio_tungstenite::{
-	connect_async,
-	tungstenite::{
-		protocol::{frame::coding::CloseCode, CloseFrame},
-		Message,
-	},
-};
+use tokio::time::sleep;
 use url::Url;
 
 use super::token::AuthTokens;
-use crate::{util::API_KEY, LoadoutClient, Result};
+use crate::{LoadoutClient, Result};
 
 const REDIRECT_SERVER: &str = env!("SERVER_LOCATION");
 
@@ -48,64 +40,33 @@ pub async fn get_authorization_code(
 		_ = location.set_port(Some(3030));
 	}
 
-	// let mut ws = connect_async(dbg!(location)).await?.0;
-	let mut ws = timeout(Duration::from_secs(15), connect_async(location))
-		.await??
-		.0;
+	location.set_path("retrieval");
 
-	let data_to_send = serde_json::json!({
-		"api_key": API_KEY.to_owned(),
-		"state": csrf_token.secret().to_owned(),
-	});
+	let query = "state=".to_owned() + csrf_token.secret().as_str();
 
-	ws.send(Message::Text(serde_json::to_string(&data_to_send)?))
-		.await?;
+	location.set_query(Some(&query));
 
 	let scope = app_handle.shell_scope();
 
 	scope.open(auth_url.as_str(), None)?;
 
-	let mut raw_code = String::new();
-	while let Some(Ok(c)) = ws.next().await {
-		if c.is_ping() {
-			ws.send(Message::Pong(c.into_data())).await?;
-			continue;
+	let code = loop {
+		let value = http
+			.request_client
+			.get(location.clone())
+			.send()
+			.await?
+			.json::<Option<String>>()
+			.await?;
+
+		if let Some(code) = value {
+			break code;
+		} else {
+			sleep(Duration::from_secs(5)).await;
 		}
+	};
 
-		if !c.is_text() {
-			panic!("invalid message received: {:?}", c);
-		}
-
-		raw_code.push_str(&c.to_text()?);
-		_ = ws
-			.close(Some(CloseFrame {
-				code: CloseCode::Normal,
-				reason: "received code".into(),
-			}))
-			.await;
-		break;
-	}
-
-	let raw = serde_json::from_str::<MessageData>(&raw_code)?;
-
-	let MessageData {
-		code,
-		state: oauth_state,
-	} = raw;
-
-	log::debug!(
-		"received code {} with state {} from bungie",
-		code,
-		oauth_state
-	);
-
-	if oauth_state != csrf_token.secret().as_str() {
-		log::error!("state was invalid, something has been compromised, bailing application");
-
-		app_handle.exit(1);
-		// this code is unreachable, but it's for peace of mind
-		panic!("unreachable");
-	}
+	log::debug!("received code {} from bungie", code);
 
 	let token_result = http
 		.oauth()
@@ -169,9 +130,3 @@ impl D2ExtraFields {
 }
 
 impl ExtraTokenFields for D2ExtraFields {}
-
-#[derive(Debug, Deserialize)]
-struct MessageData {
-	code: String,
-	state: String,
-}
