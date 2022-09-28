@@ -29,13 +29,7 @@
 		"redux": "^4.1.2",
 		"redux-thunk": "^2.4.1",
 		"swr": "^1.3.0",
-		"typesafe-actions": "^5.1.0",
-		"workbox-cacheable-response": "^6.5.4",
-		"workbox-core": "^6.5.4",
-		"workbox-expiration": "^6.5.4",
-		"workbox-precaching": "^6.5.4",
-		"workbox-routing": "^6.5.4",
-		"workbox-strategies": "^6.5.4"
+		"typesafe-actions": "^5.1.0"
 	},
 	"devDependencies": {
 		"@tauri-apps/cli": "^1.0.5",
