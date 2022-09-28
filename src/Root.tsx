@@ -13,6 +13,8 @@ export function Root(): JSX.Element {
             return fetch(key)
         },
         revalidateOnMount: false,
+        revalidateOnFocus: false,
+        revalidateIfStale: true,
         shouldRetryOnError: false,
         suspense: true
     }

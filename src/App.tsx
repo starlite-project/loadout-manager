@@ -5,7 +5,7 @@ import type { RootState } from './store/types';
 import { ErrorBoundary, ScrollToTop, ShowPageLoading } from './components/utility';
 import React, { Suspense } from 'react';
 import { t } from './utils';
-import styled from 'styled-components';
+import styled from '@emotion/styled';
 
 const User = React.lazy(() => import('./components/User'));
 
