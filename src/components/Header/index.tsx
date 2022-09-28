@@ -1,3 +1,1 @@
-import type { FC } from "react";
-
-export default {}
+export default {};

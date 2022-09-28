@@ -10,56 +10,56 @@ export * from './application';
 export function fetch(key: 'get_bungie_applications'): Promise<Array<Application> | null>;
 export function fetch(key: 'get_current_user'): Promise<GeneralUser | null>;
 export async function fetch(key: string): Promise<unknown> {
-    const token = await getActiveToken();
+	const token = await getActiveToken();
 
-    if (!token) {
-        return null;
-    }
+	if (!token) {
+		return null;
+	}
 
-    // return invoke(key, { token });
-    try {
-        return await invoke(key, { token });
-    } catch (e) {
-        await error(e as string);
-        throw e;
-    }
+	// return invoke(key, { token });
+	try {
+		return await invoke(key, { token });
+	} catch (e) {
+		await error(e as string);
+		throw e;
+	}
 }
 
 export const getActiveToken = async (): Promise<AuthTokens> => {
-    const token = getToken();
+	const token = getToken();
 
-    if (!token) {
-        removeToken();
-        throw new FatalTokenError('No auth token, redirect to login');
-    }
+	if (!token) {
+		removeToken();
+		throw new FatalTokenError('No auth token, redirect to login');
+	}
 
-    const accessTokenIsValid = token && !hasTokenExpired(token.accessToken);
-    if (accessTokenIsValid) {
-        return token;
-    }
+	const accessTokenIsValid = token && !hasTokenExpired(token.accessToken);
+	if (accessTokenIsValid) {
+		return token;
+	}
 
-    const refreshTokenIsValid = token && !hasTokenExpired(token.refreshToken);
-    console.log(refreshTokenIsValid);
-    if (!refreshTokenIsValid) {
-        removeToken();
-        throw new FatalTokenError('Refresh token invalid, clearing auth tokens and going to login');
-    }
+	const refreshTokenIsValid = token && !hasTokenExpired(token.refreshToken);
+	console.log(refreshTokenIsValid);
+	if (!refreshTokenIsValid) {
+		removeToken();
+		throw new FatalTokenError('Refresh token invalid, clearing auth tokens and going to login');
+	}
 
-    let newToken: AuthTokens | null = null;
-    try {
-        newToken = await invoke('refresh_token', { token });
-        console.log(newToken);
-        setToken(newToken!);
-        return getToken()!
-    } catch (e) {
-        await error(e as string);
-        throw new FatalTokenError('failed to fetch token');
-    }
-}
+	let newToken: AuthTokens | null = null;
+	try {
+		newToken = await invoke('refresh_token', { token });
+		console.log(newToken);
+		setToken(newToken!);
+		return getToken()!;
+	} catch (e) {
+		await error(e as string);
+		throw new FatalTokenError('failed to fetch token');
+	}
+};
 
 export class FatalTokenError extends Error {
-    public constructor(message: string) {
-        super(message);
-        this.name = 'FatalTokenError';
-    }
+	public constructor(message: string) {
+		super(message);
+		this.name = 'FatalTokenError';
+	}
 }

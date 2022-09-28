@@ -10,27 +10,29 @@ import { t } from '../../utils';
 import type React from 'react';
 
 export const Login: FunctionComponent = () => {
-    const navigate = useNavigate();
-    const dispatch = useThunkDispatch();
+	const navigate = useNavigate();
+	const dispatch = useThunkDispatch();
 
-    const onLoginClick = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        try {
-            const authToken = await invoke('get_authorization_code') as AuthTokens;
-            setToken(authToken);
-            dispatch(loggedIn());
-        } catch (e) {
-            await error(e as string);
-        } finally {
-            navigate('/');
-        }
-    };
+	const onLoginClick = async (e: React.MouseEvent) => {
+		e.preventDefault();
+		try {
+			const authToken = (await invoke('get_authorization_code')) as AuthTokens;
+			setToken(authToken);
+			dispatch(loggedIn());
+		} catch (e) {
+			await error(e as string);
+		} finally {
+			navigate('/');
+		}
+	};
 
-    return <Billboard>
-        <AuthButton
-            rel="noopener noreferrer"
-            onClick={onLoginClick}>{t('Views.Login.Auth')}</AuthButton>
-    </Billboard>
-}
+	return (
+		<Billboard>
+			<AuthButton rel="noopener noreferrer" onClick={onLoginClick}>
+				{t('Views.Login.Auth')}
+			</AuthButton>
+		</Billboard>
+	);
+};
 
 export default Login;

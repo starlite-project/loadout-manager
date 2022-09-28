@@ -4,10 +4,10 @@ import { shell } from './shell';
 import type { RootState } from './types';
 
 const reducer: Reducer<RootState> = (state, action) => {
-    return combineReducers({
-        accounts,
-        shell
-    })(state, action)
-}
+	return combineReducers({
+		accounts,
+		shell,
+	})(state, action);
+};
 
 export default reducer;

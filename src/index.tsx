@@ -8,9 +8,9 @@ const consolePromise = attachConsole();
 const i18nPromise = initi18n();
 
 (async () => {
-    const root = ReactDOM.createRoot(document.getElementById('app')!);
+	const root = ReactDOM.createRoot(document.getElementById('app')!);
 
-    await Promise.all([consolePromise, i18nPromise]);
+	await Promise.all([consolePromise, i18nPromise]);
 
-    root.render(<Root />);
+	root.render(<Root />);
 })();
