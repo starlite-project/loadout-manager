@@ -4,12 +4,14 @@ import * as actions from './actions';
 
 export interface ShellState {
 	readonly loadingMessages: string[];
+	readonly routerLocation?: string;
 }
 
 export type ShellAction = ActionType<typeof actions>;
 
 const initialState: ShellState = {
 	loadingMessages: [],
+	routerLocation: ''
 };
 
 export const shell: Reducer<ShellState, ShellAction> = (
@@ -27,6 +29,16 @@ export const shell: Reducer<ShellState, ShellAction> = (
 				...state,
 				loadingMessages: state.loadingMessages.filter((m): boolean => m !== action.payload),
 			};
+		case getType(actions.setRouterLocation):
+			return {
+				...state,
+				routerLocation: action.payload,
+			}
+		case getType(actions.resetRouterLocation):
+			return {
+				...state,
+				routerLocation: undefined
+			}
 		default:
 			return state;
 	}

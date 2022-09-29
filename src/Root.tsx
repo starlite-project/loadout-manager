@@ -6,6 +6,7 @@ import { SWRConfig, SWRConfiguration } from 'swr';
 import { debug } from './plugins/Log';
 import { fetch } from './models';
 import React from 'react';
+import LocationSwitcher from './components/utility/LocationSwitcher';
 
 export function Root(): JSX.Element {
 	const swrConfig: SWRConfiguration = {
@@ -25,6 +26,7 @@ export function Root(): JSX.Element {
 			<SWRConfig value={swrConfig}>
 				<BrowserRouter>
 					<Provider store={store}>
+						<LocationSwitcher />
 						<App />
 					</Provider>
 				</BrowserRouter>

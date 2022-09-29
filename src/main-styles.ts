@@ -3,41 +3,32 @@ import { css } from '@emotion/css';
 import styled from '@emotion/styled';
 
 /* eslint-disable-next-line @typescript-eslint/no-namespace */
-export namespace CSSConstants {
+export const CSSConstants = {
 	// Elements
-	export const Arc = '#85c5ec' as const;
-	export const Solar = '#f2721b' as const;
-	export const Void = '#814bcf' as const;
+	Arc: '#85c5ec' as const,
+	Solar: '#f2721b' as const,
+	Void: '#814bcf' as const,
 
 	// Rarieties
-	export const Common = '#dcdcdc' as const;
-	export const Uncommon = '#366e42' as const;
-	export const Rare = '#5076a3' as const;
-	export const Legendary = '#513065' as const;
-	export const Exotic = '#c3a019' as const;
+	Common: '#dcdcdc' as const,
+	Uncommon: '#366e42' as const,
+	Rare: '#5076a3' as const,
+	Legendary: '#513065' as const,
+	Exotic: '#c3a019' as const,
 
 	// Misc
-	export const Xp = '#5ea16a' as const;
-	export const Gold = '#f5dc56' as const;
-	export const Power = Gold;
+	Xp: '#5ea16a' as const,
+	Gold: '#f5dc56' as const,
+	get Power(): '#f5dc56' {
+		return this.Gold;
+	},
 
-	export const MasterworkBorderColor = '#eade8b' as const;
-	export const DeepsightBorderColor = '#d25336' as const;
+	MasterworkBorderColor: '#eade8b' as const,
+	DeepsightBorderColor: '#d25336' as const,
 
-	export const ItemBorderWidth = '1px' as const;
-
-	export const EquippedItemBorder = '1px' as const;
-	export const EquipeedItemPadding = '2px' as const;
-	export const EquippedItemTotalOutset = `#{2 * (${
-		EquippedItemBorder + EquipeedItemPadding
-	})}` as const;
-
-	export const BadgeFontSize = '(var(--item-size) / 5)' as const;
-	export const BadgeHeight = `(#{${BadgeFontSize}} + 4px)` as const;
-
-	export const Purple = '#843da4' as const;
-	export const Scarlet = '#da004e' as const;
-}
+	Purple: '#843da4' as const,
+	Scarlet: '#da004e' as const,
+};
 
 export const DestinyHeader = css`
 	text-transform: uppercase;

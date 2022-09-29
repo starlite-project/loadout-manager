@@ -7,9 +7,9 @@ import { loggedIn } from '../../store/account/actions';
 import type { FunctionComponent } from 'react';
 import { Billboard, AuthButton } from './styles';
 import { t } from '../../utils';
-import type React from 'react';
+import React from 'react';
 
-export const Login: FunctionComponent = () => {
+const InternalLogin: FunctionComponent = () => {
 	const navigate = useNavigate();
 	const dispatch = useThunkDispatch();
 
@@ -34,5 +34,7 @@ export const Login: FunctionComponent = () => {
 		</Billboard>
 	);
 };
+
+export const Login = React.memo(InternalLogin);
 
 export default Login;

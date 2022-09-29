@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import { FunctionComponent, useEffect } from 'react';
 import { loadingEnd, loadingStart } from '../../store/shell/actions';
 import { useThunkDispatch } from '../../store/thunk';
 
-export function ShowPageLoading({ message }: { message: string }): null {
+export const ShowPageLoading: FunctionComponent<{ message: string }> = ({ message }): null => {
 	const dispatch = useThunkDispatch();
 	useEffect(() => {
 		dispatch(loadingStart(message));

@@ -1,4 +1,4 @@
-import './wdyr';
+import './dev-setup';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { attachConsole } from './plugins/Log';

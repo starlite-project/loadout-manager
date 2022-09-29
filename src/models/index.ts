@@ -39,7 +39,6 @@ export const getActiveToken = async (): Promise<AuthTokens> => {
 	}
 
 	const refreshTokenIsValid = token && !hasTokenExpired(token.refreshToken);
-	console.log(refreshTokenIsValid);
 	if (!refreshTokenIsValid) {
 		removeToken();
 		throw new FatalTokenError('Refresh token invalid, clearing auth tokens and going to login');
@@ -48,7 +47,6 @@ export const getActiveToken = async (): Promise<AuthTokens> => {
 	let newToken: AuthTokens | null = null;
 	try {
 		newToken = await invoke('refresh_token', { token });
-		console.log(newToken);
 		setToken(newToken!);
 		return getToken()!;
 	} catch (e) {
