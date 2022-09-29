@@ -13,7 +13,7 @@ export const Login: FunctionComponent = () => {
 	const navigate = useNavigate();
 	const dispatch = useThunkDispatch();
 
-	const onLoginClick = async (e: React.MouseEvent) => {
+	const onLoginClick = async (e: React.MouseEvent): Promise<void> => {
 		e.preventDefault();
 		try {
 			const authToken = (await invoke('get_authorization_code')) as AuthTokens;

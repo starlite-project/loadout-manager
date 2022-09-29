@@ -5,7 +5,7 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import clsx from 'clsx';
 import * as styles from './styles';
 
-const messageSelector = (state: RootState) => {
+const messageSelector = (state: RootState): string | undefined => {
 	const length = state.shell.loadingMessages.length;
 	return length ? state.shell.loadingMessages[length - 1] : undefined;
 };

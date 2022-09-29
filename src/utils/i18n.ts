@@ -87,7 +87,7 @@ export function initi18n(): Promise<unknown> {
 	});
 }
 
-const humanBytes = (size: number) => {
+const humanBytes = (size: number): string => {
 	if (size <= 0) {
 		return '0B';
 	}

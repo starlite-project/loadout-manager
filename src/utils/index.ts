@@ -18,7 +18,7 @@ export const dedupPromise = <T extends unknown[], K>(
 	};
 };
 
-export const t = (key: string | string[], options?: string | TOptions | undefined) =>
+export const t = (key: string | string[], options?: string | TOptions | undefined): string =>
 	i18next.t(key, options);
 
 export function tl<T extends string>(key: T): T {

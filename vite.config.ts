@@ -7,6 +7,11 @@ export default defineConfig({
 	server: {
 		strictPort: true,
 	},
+	resolve: {
+		alias: {
+			'react-redux': 'react-redux/dist/react-redux.js'
+		}
+	},
 	define: {
 		__LOADOUT_MANAGER_FLAVOR__: JSON.stringify(process.env.TAURI_DEBUG ? 'dev' : 'prod')
 	},

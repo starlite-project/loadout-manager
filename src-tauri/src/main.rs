@@ -6,7 +6,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use app::{
-	plugins::{fern::colors, LogLevel, LogTarget, LoggerBuilder, RotationStrategy},
+	plugins::{fern::colors, LogLevel, LoggerBuilder, RotationStrategy},
 	LoadoutClient, Result,
 };
 #[cfg(debug_assertions)]
@@ -36,7 +36,6 @@ fn main() -> Result<()> {
 		} else {
 			LogLevel::Debug
 		})
-		.target(LogTarget::Webview)
 		.with_colors(colors::ColoredLevelConfig {
 			error: colors::Color::Red,
 			warn: colors::Color::Yellow,

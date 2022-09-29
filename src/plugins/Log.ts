@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/tauri';
-import { Event, listen } from '@tauri-apps/api/event';
+import { Event, listen, UnlistenFn } from '@tauri-apps/api/event';
 
 enum LogLevel {
 	Trace = 1,
@@ -44,7 +44,7 @@ interface RecordPayload {
 	message: string;
 }
 
-export function attachConsole() {
+export function attachConsole(): Promise<UnlistenFn> {
 	return listen('log://log', (event: Event<RecordPayload>) => {
 		const payload = event.payload;
 

@@ -5,6 +5,7 @@ import store from './store';
 import { SWRConfig, SWRConfiguration } from 'swr';
 import { debug } from './plugins/Log';
 import { fetch } from './models';
+import React from 'react';
 
 export function Root(): JSX.Element {
 	const swrConfig: SWRConfiguration = {
@@ -20,13 +21,15 @@ export function Root(): JSX.Element {
 	};
 
 	return (
-		<SWRConfig value={swrConfig}>
-			<BrowserRouter>
-				<Provider store={store}>
-					<App />
-				</Provider>
-			</BrowserRouter>
-		</SWRConfig>
+		<React.StrictMode>
+			<SWRConfig value={swrConfig}>
+				<BrowserRouter>
+					<Provider store={store}>
+						<App />
+					</Provider>
+				</BrowserRouter>
+			</SWRConfig>
+		</React.StrictMode>
 	);
 }
 
