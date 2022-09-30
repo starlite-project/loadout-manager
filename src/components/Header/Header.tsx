@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useCallback, useState, useRef } from 'react';
+import React, { type FunctionComponent, useCallback, useState, useRef } from 'react';
 import { useThunkDispatch } from '../../store/thunk';
 
 export const Header: FunctionComponent = () => {
@@ -27,3 +27,5 @@ export const Header: FunctionComponent = () => {
         </header>
     )
 }
+
+export default Header;

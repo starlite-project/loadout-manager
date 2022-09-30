@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { Login, PageLoading } from './components';
+import { Login, PageLoading, Header } from './components';
 import { useSelector } from 'react-redux';
 import type { RootState } from './store/types';
 import { ErrorBoundary, ScrollToTop, ShowPageLoading } from './components/utility';
@@ -20,6 +20,7 @@ export function App(): JSX.Element {
 		<StyledApp>
 			<ScrollToTop />
 			<PageLoading />
+			<Header />
 			<ErrorBoundary name="Loadout Manager">
 				<Suspense fallback={<ShowPageLoading message={t('Loading.Code')} />}>
 					<Routes>
