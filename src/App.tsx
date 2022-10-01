@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { Login, PageLoading, Header } from './components';
+import { PageLoading, Header } from './components';
+import { Login, Settings } from './pages';
 import { useSelector } from 'react-redux';
 import type { RootState } from './store/types';
 import { ErrorBoundary, ScrollToTop, ShowPageLoading } from './components/utility';
@@ -22,11 +23,12 @@ export function App(): JSX.Element {
 					<Routes>
 						<Route path="login" element={<Login />} />
 						<Route path="user" element={<User />} />
-						{needsLogin ? (
-							<Route path="*" element={<Navigate to="/login" />} />
-						) : (
-							<Route path="*" element={<Navigate to="/user" />} />
-						)}
+						<Route path="settings" element={<Settings />} />
+							{needsLogin ? (
+								<Route path="*" element={<Navigate to="/login" />} />
+							) : (
+								<Route path="*" element={<Navigate to="/user" />} />
+							)}
 					</Routes>
 				</Suspense>
 			</ErrorBoundary>
