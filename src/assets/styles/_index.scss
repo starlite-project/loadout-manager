@@ -1,6 +1,7 @@
 $arc: #85c5ec;
 $solar: #f2721b;
 $void: #814bcf;
+$stasis: #4d88ff;
 
 $common: #dcdcdc;
 $uncommon: #366e42;
@@ -24,8 +25,16 @@ $equipped-item-total-outset: #{2 * ($equipped-item-border + $equipped-item-paddi
 $badge-font-size: '(var(--item-size) / 5)';
 $badge-height: '(#{$badge-font-size} + 4px)';
 
-$purple: #843da4;
-$scarlet: #da004e;
+$primary: #843da4;
+$secondary: #da004e;
+
+:root {
+    --header-height: 44px;
+}
+
+div[tableindex='-1']:focus {
+    outline: 0;
+}
 
 @mixin destiny-header {
     text-transform: uppercase;
@@ -60,7 +69,7 @@ $scarlet: #da004e;
     &:hover,
     &:active,
     &.selected {
-        background-color: $purple !important;
+        background-color: $primary !important;
         color: black !important;
         img {
             filter: invert(1) drop-shadow(0 0 1px black);

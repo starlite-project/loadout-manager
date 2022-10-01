@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/types';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import clsx from 'clsx';
-import * as styles from './styles';
+import styles from './PageLoading.module.scss';
 
 const messageSelector = (state: RootState): string | undefined => {
 	const length = state.shell.loadingMessages.length;
@@ -11,9 +11,10 @@ const messageSelector = (state: RootState): string | undefined => {
 };
 
 const transitionClasses = {
-	enter: styles.PageLoading,
-	enterActive: styles.PageLoadingEnterActive,
-	exit: styles.PageLoadingExit,
+	enter: styles.pageLoadingEnter,
+	enterActive: styles.pageLoadingEnterActive,
+	exit: styles.pageLoadingExit,
+	exitActive: styles.pageLoadingExitActive,
 } as const;
 
 export const PageLoading: FunctionComponent = (): ReactElement => {
@@ -27,7 +28,7 @@ export const PageLoading: FunctionComponent = (): ReactElement => {
 					classNames={transitionClasses}
 					timeout={{ enter: 600, exit: 300 }}
 				>
-					<div ref={nodeRef} className={clsx(styles.PageLoading)}>
+					<div ref={nodeRef} className={clsx(styles.pageLoading)}>
 						<div>{message}</div>
 					</div>
 				</CSSTransition>

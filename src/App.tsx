@@ -5,19 +5,15 @@ import type { RootState } from './store/types';
 import { ErrorBoundary, ScrollToTop, ShowPageLoading } from './components/utility';
 import React, { Suspense } from 'react';
 import { t } from './utils';
-import styled from '@emotion/styled';
+import styles from './App.module.scss';
 
 const User = React.lazy(() => import('./components/User'));
-
-const StyledApp = styled.div`
-	padding: 20px;
-`;
 
 export function App(): JSX.Element {
 	const needsLogin = useSelector((state: RootState): boolean => state.accounts.needsLogin);
 
 	return (
-		<StyledApp>
+		<div className={styles.wrapper}>
 			<ScrollToTop />
 			<PageLoading />
 			<Header />
@@ -34,7 +30,7 @@ export function App(): JSX.Element {
 					</Routes>
 				</Suspense>
 			</ErrorBoundary>
-		</StyledApp>
+		</div>
 	);
 }
 

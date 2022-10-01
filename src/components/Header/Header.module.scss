@@ -1,0 +1,15 @@
+@use '../../assets/styles/index' as *;
+
+body {
+    padding-top: var(--header-height);
+    box-sizing: border-box;
+    min-height: var(--viewport-height);
+}
+
+.container {
+    position: fixed;
+    z-index: 1001;
+    top: 0;
+    left: 0;
+    right: 0;
+}

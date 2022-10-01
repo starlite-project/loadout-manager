@@ -1,8 +1,29 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+import sassDts from 'vite-plugin-sass-dts';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+	css: {
+		modules: {
+			generateScopedName: process.env.TAURI_DEBUG ? '[name]__[local]__[hash:base64:5]' : '[hash:base64:5]'
+		},
+		preprocessorOptions: {
+			scss: {
+				importer(...args: string[]) {
+					console.log(args);
+					if (args[0] !== '@/styles') {
+						return;
+					}
+
+					return {
+						file: resolve(__dirname, 'src', 'assets', 'styles')
+					}
+				}
+			}
+		}
+	},
 	clearScreen: false,
 	server: {
 		strictPort: true,
@@ -18,9 +39,13 @@ export default defineConfig({
 	envPrefix: ['VITE_', 'TAURI_'],
 	build: {
 		target: ['es2021', 'chrome100', 'safari13'],
-		// minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
-		minify: false,
+		minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
 		sourcemap: !!process.env.TAURI_DEBUG,
 	},
-	plugins: [react()]
+	plugins: [
+		react(),
+		sassDts({
+			enabledMode: ['development', 'production'],
+		})
+	]
 });
