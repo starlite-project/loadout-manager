@@ -1,4 +1,8 @@
 {
+    "Header": {
+        "About": "About Loadout Manager",
+        "Menu": "Menu"
+    },
     "Loading": {
         "Code": "Loading code..."
     },

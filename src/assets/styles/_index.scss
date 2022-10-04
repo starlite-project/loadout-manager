@@ -25,21 +25,80 @@ $equipped-item-total-outset: #{2 * ($equipped-item-border + $equipped-item-paddi
 $badge-font-size: '(var(--item-size) / 5)';
 $badge-height: '(#{$badge-font-size} + 4px)';
 
-$primary: #843da4;
-$secondary: #da004e;
+$primary: #da004e;
+$secondary: #843da4;
+$gradient: radial-gradient(circle at 50% 70px,
+        hsl(295, 84%, 15%) 0%,
+        hsl(295, 29%, 11%) 100%);
 
 :root {
     --header-height: 44px;
+
+    overflow-y: scroll;
 }
 
 div[tableindex='-1']:focus {
     outline: 0;
 }
 
-@mixin destiny-header {
-    text-transform: uppercase;
-    font-weight: 600;
-    font-family: Helvetica, Arial, sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5 {
+    font-weight: normal;
+}
+
+label {
+    cursor: inherit;
+}
+
+div:focus,
+span:focus {
+    outline-width: 0;
+}
+
+a {
+    color: #ddd;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+h2,
+h3 {
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+html,
+body {
+    overscroll-behavior: none;
+}
+
+body {
+    margin: 0 auto;
+    background-color: #313233;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    line-height: calc(16 / 12);
+    accent-color: $primary;
+    -webkit-user-drag: none;
+    text-size-adjust: none;
+}
+
+h2,
+h3,
+h4 {
+    font-weight: 400;
+}
+
+.disabled {
+    opacity: 0.5;
+}
+
+*[role='button'] {
+    cursor: pointer;
 }
 
 .loadout-manager-button {
@@ -50,7 +109,7 @@ div[tableindex='-1']:focus {
     color: white;
     font-size: 12px;
     line-height: calc(16 / 12);
-    font-family: 'Open Sans', sans-serif, 'Destiny Symbols';
+    font-family: 'Open Sans', sans-serif, Arial;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
     border: 1px solid transparent;
     transition: all 150ms ease-out;
@@ -69,8 +128,9 @@ div[tableindex='-1']:focus {
     &:hover,
     &:active,
     &.selected {
-        background-color: $primary !important;
+        background-color: $primary  !important;
         color: black !important;
+
         img {
             filter: invert(1) drop-shadow(0 0 1px black);
         }
@@ -79,4 +139,51 @@ div[tableindex='-1']:focus {
     input {
         display: none;
     }
+
+    &[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+
+        &:hover,
+        &:active,
+        &.selected {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+
+            img {
+                filter: drop-shadow(0 0 1px black);
+            }
+        }
+    }
+
+    &.danger {
+        &:hover {
+            background-color: $secondary  !important;
+        }
+    }
+
+    &:focus {
+        border-color: $primary;
+        outline: none;
+    }
+
+    &:focus:not(:focus-visible) {
+        border-color: transparent;
+    }
+
+    & .app-icon {
+        margin-right: 4px;
+    }
+}
+
+a.loadout-manager-button {
+    text-decoration: none;
+}
+
+// Mixins
+
+@mixin destiny-header {
+    text-transform: uppercase;
+    font-weight: 600;
+    font-family: Helvetica, Arial, sans-serif;
 }
