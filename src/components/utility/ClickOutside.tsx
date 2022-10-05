@@ -1,6 +1,6 @@
-import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { useEventBusListener } from '../../utils/hooks';
 import { EventBus } from '../../utils/observable';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 
 export const ClickOutsideContext = React.createContext(new EventBus<React.MouseEvent>());
 
@@ -9,8 +9,7 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
     /** An optional second ref that will be excluded from being considered "outside". This is good for preventing the triggering button from double-counting clicks. */
     extraRef?: React.RefObject<HTMLElement>;
     onClickOutside(event: React.MouseEvent | MouseEvent): void;
-  };
-
+};
 const ClickOutsideInternal = ({ onClickOutside, children, extraRef, ...other }: Props, ref: React.RefObject<HTMLDivElement> | null): JSX.Element => {
     const localRef = useRef<HTMLDivElement>(null);
     const wrapperRef = ref || localRef;
@@ -47,6 +46,6 @@ const ClickOutsideInternal = ({ onClickOutside, children, extraRef, ...other }: 
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-export const ClickOutside = React.forwardRef<React.RefObject<HTMLDivElement> | null, Props>(ClickOutsideInternal);
+export const ClickOutside = React.forwardRef(ClickOutsideInternal);
 
-export default ClickOutside;
+// export default ClickOutside;

@@ -7,7 +7,7 @@
 		"distDir": "../dist"
 	},
 	"package": {
-		"productName": "loadout-manager",
+		"productName": "Inventory Manager",
 		"version": "0.0.1"
 	},
 	"tauri": {
@@ -60,7 +60,7 @@
 				"fullscreen": false,
 				"height": 600,
 				"resizable": true,
-				"title": "Loadout Manager",
+				"title": "Inventory Manager",
 				"width": 800
 			}
 		]

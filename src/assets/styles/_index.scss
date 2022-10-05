@@ -1,3 +1,5 @@
+// Variable values
+
 $arc: #85c5ec;
 $solar: #f2721b;
 $void: #814bcf;
@@ -30,6 +32,12 @@ $secondary: #843da4;
 $gradient: radial-gradient(circle at 50% 70px,
         hsl(295, 84%, 15%) 0%,
         hsl(295, 29%, 11%) 100%);
+
+$easeInCubic: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+$easeOutCubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+$easeInOutCubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+
+// Main stylings
 
 :root {
     --header-height: 44px;
@@ -186,4 +194,8 @@ a.loadout-manager-button {
     text-transform: uppercase;
     font-weight: 600;
     font-family: Helvetica, Arial, sans-serif;
+}
+
+@mixin below-header {
+    top: var(--header-height);
 }

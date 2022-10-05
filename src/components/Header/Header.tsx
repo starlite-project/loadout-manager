@@ -3,8 +3,17 @@ import { useThunkDispatch } from '../../store/thunk';
 import { NavLink, useLocation } from 'react-router-dom';
 import styles from './Header.module.scss';
 import { useSetCSSVarToHeight } from '../../utils/hooks';
+import { ClickOutside } from '../utility';
 import clsx from 'clsx';
 import { t } from '../../utils';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+
+const transitionClasses = {
+    enter: styles.dropdownEnter,
+    enterActive: styles.dropdownEnterActive,
+    exit: styles.dropdownExit,
+    exitActive: styles.dropdownExitActive
+} as const;
 
 export const Header: FunctionComponent = () => {
     const dispatch = useThunkDispatch();
@@ -17,6 +26,7 @@ export const Header: FunctionComponent = () => {
     }, []);
 
     const hideDropdown = useCallback((): void => {
+        console.log("hiding dropdown");
         setDropdownOpen(false);
     }, []);
 
@@ -29,6 +39,8 @@ export const Header: FunctionComponent = () => {
 
     const headerRef = useRef<HTMLDivElement>(null);
     useSetCSSVarToHeight(headerRef, '--header-height');
+
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const navLinkClassName = ({ isActive }: { isActive: boolean }): string =>
         clsx(styles.menuItem, { [styles.active]: isActive });
@@ -55,6 +67,25 @@ export const Header: FunctionComponent = () => {
                 >
                     This is the menu
                 </a>
+                <TransitionGroup component={null}>
+                    {dropdownOpen && (
+                        <CSSTransition
+                            nodeRef={dropdownRef}
+                            classNames={transitionClasses}
+                            timeout={{ enter: 500, exit: 500 }}
+                        >
+                            <ClickOutside
+                                ref={dropdownRef}
+                                extraRef={dropdownToggler}
+                                key="dropdown"
+                                className={styles.dropdown}
+                                onClickOutside={hideDropdown}
+                                role="menu">
+                                Dropped down
+                            </ClickOutside>
+                        </CSSTransition>
+                    )}
+                </TransitionGroup>
             </div>
         </header>
     )
