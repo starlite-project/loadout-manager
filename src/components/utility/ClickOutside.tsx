@@ -10,7 +10,8 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
     extraRef?: React.RefObject<HTMLElement>;
     onClickOutside(event: React.MouseEvent | MouseEvent): void;
 };
-const ClickOutsideInternal = ({ onClickOutside, children, extraRef, ...other }: Props, ref: React.RefObject<HTMLDivElement> | null): JSX.Element => {
+// eslint-disable-next-line react/prop-types, @typescript-eslint/no-unused-vars
+const ClickOutsideInternal = ({ onClickOutside, children, extraRef, onClick: _onClick, ...other }: Props, ref: React.RefObject<HTMLDivElement> | null): JSX.Element => {
     const localRef = useRef<HTMLDivElement>(null);
     const wrapperRef = ref || localRef;
     const mouseEvents = useContext(ClickOutsideContext);
@@ -18,7 +19,7 @@ const ClickOutsideInternal = ({ onClickOutside, children, extraRef, ...other }: 
     const handleClickOutside = useCallback((event: React.MouseEvent) => {
         const target = event.target as Node;
         if (
-            wrapperRef.current && !wrapperRef.current.contains(target) && (!extraRef?.current && !extraRef?.current?.contains(target))
+            wrapperRef.current && !wrapperRef.current.contains(target) && (!extraRef?.current || !extraRef.current.contains(target))
         ) {
             onClickOutside(event);
         }
@@ -46,6 +47,6 @@ const ClickOutsideInternal = ({ onClickOutside, children, extraRef, ...other }: 
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-export const ClickOutside = React.forwardRef(ClickOutsideInternal);
+export default React.forwardRef(ClickOutsideInternal);
 
 // export default ClickOutside;

@@ -10,5 +10,8 @@
         "Login": {
             "Auth": "Authorize with Bungie.net"
         }
+    },
+    "Settings": {
+        "Settings": "Settings"
     }
 }

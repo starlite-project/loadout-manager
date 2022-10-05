@@ -3,7 +3,7 @@ import { useThunkDispatch } from '../../store/thunk';
 import { NavLink, useLocation } from 'react-router-dom';
 import styles from './Header.module.scss';
 import { useSetCSSVarToHeight } from '../../utils/hooks';
-import { ClickOutside } from '../utility';
+import ClickOutside from '../utility/ClickOutside';
 import clsx from 'clsx';
 import { t } from '../../utils';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -26,10 +26,10 @@ export const Header: FunctionComponent = () => {
     }, []);
 
     const hideDropdown = useCallback((): void => {
-        console.log("hiding dropdown");
         setDropdownOpen(false);
     }, []);
 
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const { pathname } = useLocation();
 
@@ -40,7 +40,6 @@ export const Header: FunctionComponent = () => {
     const headerRef = useRef<HTMLDivElement>(null);
     useSetCSSVarToHeight(headerRef, '--header-height');
 
-    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const navLinkClassName = ({ isActive }: { isActive: boolean }): string =>
         clsx(styles.menuItem, { [styles.active]: isActive });
@@ -81,7 +80,11 @@ export const Header: FunctionComponent = () => {
                                 className={styles.dropdown}
                                 onClickOutside={hideDropdown}
                                 role="menu">
-                                Dropped down
+                                {"Drop down"}
+                                <hr />
+                                <NavLink className={navLinkClassName} to="/settings">
+                                    {t('Settings.Settings')}
+                                </NavLink>
                             </ClickOutside>
                         </CSSTransition>
                     )}
