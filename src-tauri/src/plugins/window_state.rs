@@ -1,0 +1,304 @@
+use std::{
+	collections::{HashMap, HashSet},
+	error::Error as StdError,
+	fmt::{Display, Formatter, Result as FmtResult},
+	fs::{create_dir_all, File},
+	io::{Error as IoError, Write},
+	sync::{Arc, Mutex},
+};
+
+use bincode::Error as BincodeError;
+use serde::{Deserialize, Serialize};
+use tauri::{
+	api::Error as TauriApiError,
+	plugin::{Builder as PluginBuilder, TauriPlugin},
+	Error as TauriError, Manager, PhysicalPosition, PhysicalSize, Position, RunEvent, Runtime,
+	Size, Window, WindowEvent,
+};
+
+pub const STATE_FILENAME: &str = ".window-state";
+
+#[derive(Debug)]
+pub enum Error {
+	Io(IoError),
+	Tauri(TauriError),
+	TauriApi(TauriApiError),
+	Bincode(BincodeError),
+}
+
+impl Display for Error {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		match self {
+			Self::Io(e) => Display::fmt(e, f),
+			Self::Tauri(e) => Display::fmt(e, f),
+			Self::TauriApi(e) => Display::fmt(e, f),
+			Self::Bincode(e) => Display::fmt(e, f),
+		}
+	}
+}
+
+impl StdError for Error {}
+
+impl From<BincodeError> for Error {
+	fn from(v: BincodeError) -> Self {
+		Self::Bincode(v)
+	}
+}
+
+impl From<TauriApiError> for Error {
+	fn from(v: TauriApiError) -> Self {
+		Self::TauriApi(v)
+	}
+}
+
+impl From<TauriError> for Error {
+	fn from(v: TauriError) -> Self {
+		Self::Tauri(v)
+	}
+}
+
+impl From<IoError> for Error {
+	fn from(v: IoError) -> Self {
+		Self::Io(v)
+	}
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+struct WindowMetadata {
+	width: u32,
+	height: u32,
+	x: i32,
+	y: i32,
+	maximized: bool,
+	visible: bool,
+	decorated: bool,
+	fullscreen: bool,
+	monitor: String,
+}
+
+struct WindowStateCache(Arc<Mutex<HashMap<String, WindowMetadata>>>);
+
+pub trait AppHandleExt {
+	fn save_window_state(&self) -> Result<(), Error>;
+}
+
+impl<R: Runtime> AppHandleExt for tauri::AppHandle<R> {
+	fn save_window_state(&self) -> Result<(), Error> {
+		if let Some(app_dir) = self.path_resolver().app_dir() {
+			let state_path = app_dir.join(STATE_FILENAME);
+			let cache = self.state::<WindowStateCache>();
+			let state = cache.0.lock().unwrap();
+			create_dir_all(&app_dir)
+				.map_err(Error::Io)
+				.and_then(|_| File::create(state_path).map_err(Into::into))
+				.and_then(|mut f| {
+					f.write_all(&bincode::serialize(&*state)?)
+						.map_err(Into::into)
+				})
+		} else {
+			Ok(())
+		}
+	}
+}
+
+pub trait WindowExt {
+	fn restore_state(&self, auto_show: bool) -> tauri::Result<()>;
+}
+
+impl<R: Runtime> WindowExt for Window<R> {
+	fn restore_state(&self, auto_show: bool) -> tauri::Result<()> {
+		let cache = self.state::<WindowStateCache>();
+		let mut c = cache.0.lock().unwrap();
+		let mut should_show = true;
+		if let Some(state) = c.get(self.label()) {
+			self.set_decorations(state.decorated)?;
+
+			let mut pos: Option<(i32, i32)> = None;
+			for m in self.available_monitors()? {
+				if m.name().map(ToString::to_string).unwrap_or_default() == state.monitor {
+					pos = Some((state.x, state.y));
+					break;
+				}
+			}
+			let (x, y) = match pos {
+				Some((x, y)) => (x, y),
+				None => {
+					if let Some(m) = self.current_monitor()? {
+						let mpos = m.position();
+						(mpos.x + 100, mpos.y + 100)
+					} else {
+						(100, 100)
+					}
+				}
+			};
+			self.set_position(Position::Physical(PhysicalPosition { x, y }))?;
+
+			self.set_size(Size::Physical(PhysicalSize {
+				width: state.width,
+				height: state.height,
+			}))?;
+			if state.maximized {
+				self.maximize()?;
+			}
+			self.set_fullscreen(state.fullscreen)?;
+
+			should_show = state.visible;
+		} else {
+			let PhysicalSize { width, height } = self.inner_size()?;
+			let PhysicalPosition { x, y } = self.outer_position()?;
+			let maximized = self.is_maximized().unwrap_or(false);
+			let visible = self.is_visible().unwrap_or(true);
+			let decorated = self.is_decorated().unwrap_or(true);
+			let fullscreen = self.is_fullscreen().unwrap_or(false);
+			let monitor = self
+				.current_monitor()?
+				.unwrap()
+				.name()
+				.map(ToString::to_string)
+				.unwrap_or_default();
+			c.insert(
+				self.label().into(),
+				WindowMetadata {
+					width,
+					height,
+					x,
+					y,
+					maximized,
+					visible,
+					decorated,
+					fullscreen,
+					monitor,
+				},
+			);
+		}
+		if auto_show && should_show {
+			self.show()?;
+			self.set_focus()?;
+		}
+
+		Ok(())
+	}
+}
+
+pub struct Builder {
+	auto_show: bool,
+	denylist: HashSet<String>,
+	skip_initial_state: HashSet<String>,
+}
+
+impl Default for Builder {
+	fn default() -> Self {
+		Builder {
+			auto_show: true,
+			denylist: HashSet::default(),
+			skip_initial_state: HashSet::default(),
+		}
+	}
+}
+
+impl Builder {
+	pub fn with_auto_show(mut self, auto_show: bool) -> Self {
+		self.auto_show = auto_show;
+		self
+	}
+
+	pub fn with_denylist<I: IntoIterator<Item = String>>(mut self, denylist: I) -> Self {
+		self.denylist = denylist.into_iter().collect();
+		self
+	}
+
+	pub fn skip_initial_state(mut self, label: String) -> Self {
+		self.skip_initial_state.insert(label);
+		self
+	}
+
+	pub fn build<R: Runtime>(self) -> TauriPlugin<R> {
+		PluginBuilder::new("window-state")
+			.setup(|app| {
+				let cache: Arc<Mutex<HashMap<String, WindowMetadata>>> = if let Some(app_dir) =
+					app.path_resolver().app_dir()
+				{
+					let state_path = app_dir.join(STATE_FILENAME);
+					if state_path.exists() {
+						Arc::new(Mutex::new(
+							tauri::api::file::read_binary(state_path)
+								.map_err(Error::TauriApi)
+								.and_then(|state| bincode::deserialize(&state).map_err(Into::into))
+								.unwrap_or_default(),
+						))
+					} else {
+						Default::default()
+					}
+				} else {
+					Default::default()
+				};
+				app.manage(WindowStateCache(cache));
+				Ok(())
+			})
+			.on_webview_ready(move |window| {
+				if self.denylist.contains(window.label()) {
+					return;
+				}
+
+				if !self.skip_initial_state.contains(window.label()) {
+					let _ = window.restore_state(self.auto_show);
+				}
+
+				let cache = window.state::<WindowStateCache>();
+				let cache = cache.0.clone();
+				let label = window.label().to_string();
+				let window_clone = window.clone();
+				window.on_window_event(move |e| match e {
+					WindowEvent::Moved(position) => {
+						let mut c = cache.lock().unwrap();
+						if let Some(state) = c.get_mut(&label) {
+							let is_maximized = window_clone.is_maximized().unwrap_or(false);
+							state.maximized = is_maximized;
+
+							if let Some(monitor) = window_clone.current_monitor().unwrap() {
+								state.monitor =
+									monitor.name().map(ToString::to_string).unwrap_or_default();
+								let monitor_position = monitor.position();
+								// save only window positions that are inside the current monitor
+								if position.x > monitor_position.x
+									&& position.y > monitor_position.y && !is_maximized
+								{
+									state.x = position.x;
+									state.y = position.y;
+								};
+							};
+						}
+					}
+					WindowEvent::Resized(size) => {
+						let mut c = cache.lock().unwrap();
+						if let Some(state) = c.get_mut(&label) {
+							let is_maximized = window_clone.is_maximized().unwrap_or(false);
+							let is_fullscreen = window_clone.is_fullscreen().unwrap_or(false);
+							state.decorated = window_clone.is_decorated().unwrap_or(true);
+							state.maximized = is_maximized;
+							state.fullscreen = is_fullscreen;
+
+							// It doesn't make sense to save a window with 0 height or width
+							if size.width > 0 && size.height > 0 && !is_maximized {
+								state.width = size.width;
+								state.height = size.height;
+							}
+						}
+					}
+					WindowEvent::CloseRequested { .. } => {
+						let mut c = cache.lock().unwrap();
+						if let Some(state) = c.get_mut(&label) {
+							state.visible = window_clone.is_visible().unwrap_or(true);
+						}
+					}
+					_ => {}
+				});
+			})
+			.on_event(|app, event| {
+				if let RunEvent::Exit = event {
+					let _ = app.save_window_state();
+				}
+			})
+			.build()
+	}
+}

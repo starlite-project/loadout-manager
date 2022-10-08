@@ -6,7 +6,9 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use app::{
-	plugins::{fern::colors, LogLevel, LoggerBuilder, RotationStrategy},
+	plugins::{
+		fern::colors, set_shadow, LogLevel, LoggerBuilder, RotationStrategy, WindowStateBuilder,
+	},
 	LoadoutClient, Result,
 };
 #[cfg(debug_assertions)]
@@ -49,18 +51,19 @@ fn main() -> Result<()> {
 	tauri::Builder::default()
 		.manage(LoadoutClient::new()?)
 		.plugin(log)
+		.plugin(WindowStateBuilder::default().build())
 		.invoke_handler(tauri::generate_handler![
 			app::fetch::get_bungie_applications,
 			app::fetch::get_current_user,
 			app::http::oauth::get_authorization_code,
 			app::http::oauth::refresh_token,
 		])
-		.setup(|_app| {
+		.setup(|app| {
+			let window = app.get_window("main").unwrap();
 			#[cfg(debug_assertions)]
-			{
-				let window = _app.get_window("main").unwrap();
-				window.open_devtools();
-			}
+			window.open_devtools();
+
+			_ = set_shadow(&window, true);
 
 			Ok(())
 		})

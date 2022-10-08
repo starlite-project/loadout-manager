@@ -7,6 +7,9 @@ import { debug } from './plugins/Log';
 import { fetch } from './models';
 import React from 'react';
 import LocationSwitcher from './components/utility/LocationSwitcher';
+import { DndProvider, MouseTransition, MultiBackendOptions, TouchTransition } from 'react-dnd-multi-backend';
+import { TouchBackend } from 'react-dnd-touch-backend';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 export function Root(): JSX.Element {
 	const swrConfig: SWRConfiguration = {
@@ -21,13 +24,27 @@ export function Root(): JSX.Element {
 		suspense: true,
 	};
 
+	const dndOptions: MultiBackendOptions = {
+		backends: [
+			{ id: 'html5', backend: HTML5Backend, transition: MouseTransition },
+			{
+				id: 'touch',
+				backend: TouchBackend,
+				transition: TouchTransition,
+				options: { delayTouchStart: 150 }
+			}
+		]
+	}
+
 	return (
 		<React.StrictMode>
 			<SWRConfig value={swrConfig}>
 				<BrowserRouter>
 					<Provider store={store}>
 						<LocationSwitcher />
-						<App />
+						<DndProvider options={dndOptions}>
+							<App />
+						</DndProvider>
 					</Provider>
 				</BrowserRouter>
 			</SWRConfig>
