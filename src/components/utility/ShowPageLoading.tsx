@@ -11,6 +11,6 @@ export const ShowPageLoading: FunctionComponent<{ message: string }> = ({ messag
 		};
 	}, [dispatch, message]);
 	return null;
-}
+};
 
 export default ShowPageLoading;

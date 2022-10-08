@@ -11,7 +11,7 @@ export type ShellAction = ActionType<typeof actions>;
 
 const initialState: ShellState = {
 	loadingMessages: [],
-	routerLocation: ''
+	routerLocation: '',
 };
 
 export const shell: Reducer<ShellState, ShellAction> = (
@@ -33,12 +33,12 @@ export const shell: Reducer<ShellState, ShellAction> = (
 			return {
 				...state,
 				routerLocation: action.payload,
-			}
+			};
 		case getType(actions.resetRouterLocation):
 			return {
 				...state,
-				routerLocation: undefined
-			}
+				routerLocation: undefined,
+			};
 		default:
 			return state;
 	}

@@ -42,7 +42,7 @@ export const refreshIcon: string;
 export const spreadsheetIcon: string;
 export const tagIcon: string;
 export const faList: string;
-export const faGrid: string; 
+export const faGrid: string;
 export const thumbsUpIcon: string;
 export const thumbsDownIcon: string;
 export const closeIcon: string;

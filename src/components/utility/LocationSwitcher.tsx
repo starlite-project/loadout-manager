@@ -5,18 +5,18 @@ import { routerLocationSelector } from '../../store/shell/selectors';
 import { resetRouterLocation } from '../../store/shell/actions';
 
 export const LocationSwitcher: FunctionComponent = (): null => {
-    const location = useSelector(routerLocationSelector);
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+	const location = useSelector(routerLocationSelector);
+	const navigate = useNavigate();
+	const dispatch = useDispatch();
 
-    useEffect((): void => {
-        if (location) {
-            navigate(location);
-            dispatch(resetRouterLocation());
-        }
-    }, [dispatch, location, navigate]);
+	useEffect((): void => {
+		if (location) {
+			navigate(location);
+			dispatch(resetRouterLocation());
+		}
+	}, [dispatch, location, navigate]);
 
-    return null;
-}
+	return null;
+};
 
 export default LocationSwitcher;

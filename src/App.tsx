@@ -3,7 +3,12 @@ import { PageLoading, Header } from './components';
 import { Login, Settings } from './pages';
 import { useSelector } from 'react-redux';
 import type { RootState } from './store/types';
-import { ClickOutsideRoot, ErrorBoundary, ScrollToTop, ShowPageLoading } from './components/utility';
+import {
+	ClickOutsideRoot,
+	ErrorBoundary,
+	ScrollToTop,
+	ShowPageLoading,
+} from './components/utility';
 import React, { Suspense } from 'react';
 import { t } from './utils';
 import styles from './App.module.scss';
