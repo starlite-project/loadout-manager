@@ -13,13 +13,18 @@
 		"lint:prettier": "prettier src/**/*.{js,ts,tsx} --check",
 		"fix": "run-s fix:*",
 		"fix:eslint": "yarn lint:eslint --fix",
-		"fix:prettier": "yarn lint:prettier --write"
+		"fix:prettier": "yarn lint:prettier --write",
+		"fa-subset": "node ./src/fa-subset.mjs"
 	},
 	"dependencies": {
 		"@babel/core": "^7.0.0",
+		"@fortawesome/fontawesome-free": "^6.2.0",
+		"@fortawesome/fontawesome-svg-core": "^6.2.0",
+		"@fortawesome/react-fontawesome": "^0.2.0",
 		"@react-hook/resize-observer": "^1.2.6",
 		"@reduxjs/toolkit": "^1.8.5",
 		"@tauri-apps/api": "1.0.2",
+		"bungie-api-ts": "^4.19.0",
 		"clsx": "^1.2.1",
 		"i18next": "^21.9.2",
 		"i18next-resources-to-backend": "^1.0.0",
@@ -49,6 +54,7 @@
 		"eslint-plugin-react": "^7.31.8",
 		"eslint-plugin-react-hooks": "^4.6.0",
 		"eslint-plugin-react-redux": "^4.0.0",
+		"fontawesome-subset": "^4.3.1",
 		"npm-run-all": "^4.1.5",
 		"postcss": "^8.4.17",
 		"prettier": "^2.7.1",
