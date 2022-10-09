@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { PageLoading, Header } from './components';
-import { Login, Settings } from './pages';
+import { Login } from './pages';
 import { useSelector } from 'react-redux';
 import type { RootState } from './store/types';
 import {
@@ -12,6 +12,8 @@ import {
 import React, { Suspense } from 'react';
 import { t } from './utils';
 import styles from './App.module.scss';
+
+const Settings = React.lazy(() => import('./pages/Settings'));
 
 const User = React.lazy(() => import('./components/User'));
 
