@@ -4,11 +4,14 @@ import { resolve } from 'path';
 import sassDts from 'vite-plugin-sass-dts';
 import { visualizer } from 'rollup-plugin-visualizer';
 
+// const debug = !!process.env.TAURI_DEBUG;
+const debug = true;
+
 // https://vitejs.dev/config/
 export default defineConfig({
 	css: {
 		modules: {
-			generateScopedName: process.env.TAURI_DEBUG ? '[name]__[local]__[hash:base64:5]' : '[hash:base64:5]'
+			generateScopedName: debug ? '[name]__[local]__[hash:base64:5]' : '[hash:base64:5]'
 		},
 		preprocessorOptions: {
 			scss: {
@@ -35,12 +38,12 @@ export default defineConfig({
 		}
 	},
 	define: {
-		__LOADOUT_MANAGER_FLAVOR__: JSON.stringify(process.env.TAURI_DEBUG ? 'dev' : 'prod')
+		__LOADOUT_MANAGER_FLAVOR__: JSON.stringify(debug ? 'dev' : 'prod')
 	},
 	envPrefix: ['VITE_', 'TAURI_'],
 	build: {
 		target: ['es2021', 'chrome100', 'safari13'],
-		minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
+		minify: !debug ? 'esbuild' : false,
 		sourcemap: !!process.env.TAURI_DEBUG,
 	},
 	plugins: [

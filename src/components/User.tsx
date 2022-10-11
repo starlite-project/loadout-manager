@@ -10,7 +10,7 @@ export const User: FC = () => {
 		throw error;
 	}
 
-	return <div>{JSON.stringify(data)}</div>;
+	return <div>{`Hello, ${data!.displayName}`}</div>;
 };
 
 export default User;

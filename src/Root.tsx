@@ -9,6 +9,7 @@ import React from 'react';
 import { DndProvider, MouseTransition, MultiBackendOptions, TouchTransition } from 'react-dnd-multi-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import LocationSwitcher from './components/utility/LocationSwitcher';
 
 export function Root(): JSX.Element {
 	const swrConfig: SWRConfiguration = {
@@ -40,6 +41,7 @@ export function Root(): JSX.Element {
 			<SWRConfig value={swrConfig}>
 				<BrowserRouter>
 					<Provider store={store}>
+						<LocationSwitcher />
 						<DndProvider options={dndOptions}>
 							<App />
 						</DndProvider>

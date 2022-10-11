@@ -27,6 +27,7 @@
 		"@tauri-apps/api": "1.0.2",
 		"bungie-api-ts": "^4.19.0",
 		"clsx": "^1.2.1",
+		"fast-equals": "^4.0.3",
 		"i18next": "^21.9.2",
 		"i18next-resources-to-backend": "^1.0.0",
 		"lodash": "^4.17.21",
