@@ -7,7 +7,6 @@ import { loggedIn } from '../../store/account/actions';
 import type { FunctionComponent } from 'react';
 import { t } from '../../utils';
 import React from 'react';
-import styles from './Login.module.scss';
 
 const InternalLogin: FunctionComponent = () => {
 	const navigate = useNavigate();
@@ -27,8 +26,8 @@ const InternalLogin: FunctionComponent = () => {
 	};
 
 	return (
-		<div className={styles.billboard}>
-			<a className={styles.auth} rel="noopener noreferrer" onClick={onLoginClick}>
+		<div>
+			<a rel="noopener noreferrer" onClick={onLoginClick}>
 				{t('Views.Login.Auth')}
 			</a>
 		</div>
