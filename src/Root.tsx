@@ -6,7 +6,12 @@ import { SWRConfig, SWRConfiguration } from 'swr';
 import { debug } from './plugins/Log';
 import { fetch } from './models';
 import React from 'react';
-import { DndProvider, MouseTransition, MultiBackendOptions, TouchTransition } from 'react-dnd-multi-backend';
+import {
+	DndProvider,
+	MouseTransition,
+	MultiBackendOptions,
+	TouchTransition,
+} from 'react-dnd-multi-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -30,10 +35,10 @@ export function Root(): JSX.Element {
 				id: 'touch',
 				backend: TouchBackend,
 				transition: TouchTransition,
-				options: { delayTouchStart: 150 }
-			}
-		]
-	}
+				options: { delayTouchStart: 150 },
+			},
+		],
+	};
 
 	return (
 		<React.StrictMode>

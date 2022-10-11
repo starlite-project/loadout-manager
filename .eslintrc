@@ -50,6 +50,7 @@
     "rules": {
         "no-empty": "error",
         "@typescript-eslint/no-non-null-assertion": "off",
-        "@typescript-eslint/explicit-function-return-type": "error"
+        "@typescript-eslint/explicit-function-return-type": "error",
+        "react/no-unescaped-entities": "off"
     }
 }

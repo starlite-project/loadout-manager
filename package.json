@@ -2,7 +2,6 @@
 	"name": "loadout-manager",
 	"private": true,
 	"version": "0.0.1",
-	"type": "module",
 	"main": "./index.html",
 	"scripts": {
 		"dev": "vite",
@@ -10,11 +9,13 @@
 		"preview": "vite preview",
 		"lint": "run-s lint:*",
 		"lint:eslint": "eslint src --ext .js,.ts,.tsx",
-		"lint:prettier": "prettier src/**/*.{js,ts,tsx} --check",
+		"lint:prettier": "prettier .storybook/**/*.{js,cjs,ts,tsx} src/**/*.{js,cjs,ts,tsx} --check",
 		"fix": "run-s fix:*",
 		"fix:eslint": "yarn lint:eslint --fix",
 		"fix:prettier": "yarn lint:prettier --write",
-		"fa-subset": "node ./src/fa-subset.mjs"
+		"fa-subset": "node ./src/fa-subset.mjs",
+		"storybook": "start-storybook -p 5173",
+		"build-storybook": "build-storybook"
 	},
 	"dependencies": {
 		"@babel/core": "^7.0.0",
@@ -46,6 +47,13 @@
 		"typesafe-actions": "^5.1.0"
 	},
 	"devDependencies": {
+		"@storybook/addon-actions": "^6.5.12",
+		"@storybook/addon-essentials": "^6.5.12",
+		"@storybook/addon-interactions": "^6.5.12",
+		"@storybook/addon-links": "^6.5.12",
+		"@storybook/builder-vite": "^0.2.4",
+		"@storybook/react": "^6.5.12",
+		"@storybook/testing-library": "^0.0.13",
 		"@tauri-apps/cli": "^1.0.5",
 		"@types/lodash": "^4.14.186",
 		"@types/node": "^18.7.6",
@@ -56,6 +64,7 @@
 		"@typescript-eslint/parser": "^5.38.1",
 		"@vitejs/plugin-react": "^2.0.1",
 		"@welldone-software/why-did-you-render": "^7.0.1",
+		"babel-loader": "^8.2.5",
 		"eslint": "^8.24.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-react": "^7.31.8",
@@ -67,6 +76,7 @@
 		"prettier": "^2.7.1",
 		"rollup-plugin-visualizer": "^5.8.2",
 		"sass": "^1.55.0",
+		"ts-node": "^10.9.1",
 		"typescript": "^4.6.4",
 		"vite": "^3.0.7",
 		"vite-plugin-sass-dts": "1.1"

@@ -15,6 +15,7 @@ dist-ssr
 */target
 target/
 stats.html
+storybook-static
 
 # Editor directories and files
 .vscode/*

@@ -3,10 +3,7 @@ import { PageLoading } from './components';
 import { Login } from './pages';
 import { useSelector } from 'react-redux';
 import type { RootState } from './store/types';
-import {
-	ErrorBoundary,
-	ShowPageLoading,
-} from './components/utility';
+import { ErrorBoundary, ShowPageLoading } from './components/utility';
 import React, { Suspense } from 'react';
 import { t } from './utils';
 import styles from './App.module.scss';
