@@ -2,10 +2,13 @@ use std::time::Duration;
 
 use serde::{de::DeserializeOwned, Serialize};
 
-use self::routing::{AppRoute, UserRoute};
+use self::routing::{AppRoute, Destiny2Route, UserRoute};
 use crate::{
 	http::token::AuthTokens,
-	model::{Application, BungieResponse, GeneralUser},
+	model::{
+		util::BungieMembershipType, Application, BungieResponse, DestinyLinkedProfilesResponse,
+		GeneralUser,
+	},
 	LoadoutClient,
 };
 
@@ -13,6 +16,18 @@ mod error;
 mod routing;
 
 pub use self::{error::FetchError, routing::IntoRequest};
+
+pub async fn get_linked_profiles(
+	http: tauri::State<'_, LoadoutClient>,
+	token: AuthTokens,
+) -> Result<DestinyLinkedProfilesResponse, FetchError> {
+	let route = Destiny2Route::GetLinkedProfiles(
+		token.bungie_membership_id,
+		BungieMembershipType::BungieNext,
+		None,
+	);
+	basic_fetch(&*http, token, route).await
+}
 
 #[tauri::command]
 pub async fn get_bungie_applications(

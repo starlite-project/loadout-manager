@@ -5,10 +5,7 @@ mod destiny;
 mod user;
 pub mod util;
 
-pub use self::{
-	application::{Application, ApplicationStatus},
-	user::GeneralUser,
-};
+pub use self::{application::*, destiny::*, user::*};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -20,4 +17,8 @@ pub struct BungieResponse<T> {
 	pub message: String,
 	pub message_data: std::collections::HashMap<String, String>,
 	pub detailed_error_trace: Option<String>,
+}
+
+pub trait IconUrl {
+	fn icon_url(&self) -> Result<url::Url, url::ParseError>;
 }
