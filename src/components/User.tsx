@@ -10,7 +10,7 @@ export const User: FC = () => {
 		throw error;
 	}
 
-	return <div>{`Hello, ${data!.displayName}`}</div>;
+	return <div>{`Hello, ${data!.displayName}, first access: ${data!.firstAccess}`}</div>;
 };
 
 export default User;

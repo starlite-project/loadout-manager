@@ -24,3 +24,7 @@ export const t = (key: string | string[], options?: string | TOptions | undefine
 export function tl<T extends string>(key: T): T {
 	return key;
 }
+
+export const API_BASE: URL = new URL('https://www.bungie.net/');
+
+export const makeBungieURL = (path: string): URL => new URL(path, API_BASE);

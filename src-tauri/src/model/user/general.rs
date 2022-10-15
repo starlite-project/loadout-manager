@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,6 +17,10 @@ pub struct GeneralUser {
 	pub success_message_flags: i64,
 	pub is_deleted: bool,
 	pub about: String,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub first_access: Option<DateTime<Utc>>,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub last_update: Option<DateTime<Utc>>,
 	#[serde(skip_serializing_if = "Option::is_none")]
 	pub psn_display_name: Option<String>,
 	#[serde(skip_serializing_if = "Option::is_none")]
